@@ -2,7 +2,8 @@ name: fix-delivery-button
 on:
   workflow_dispatch:
   push:
-    branches: [main]
+    branches:
+      - main
 jobs:
   fix:
     runs-on: ubuntu-latest
@@ -10,41 +11,13 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
-      - name: Corrigir botão previsão
+      - name: Patch
         run: |
-          python3 - <<'PY'
-          from pathlib import Path
-          p=Path('index.html')
-          s=p.read_text(encoding='utf-8')
-          marker='/* DELIVERY_BUTTON_FIX_V2 */'
-          code=r'''/* DELIVERY_BUTTON_FIX_V2 */
-function bindDeliveryButton(){
-  try{
-    const d=app.contentDocument;
-    if(!d||!d.body)return;
-    const els=[...d.querySelectorAll('a,button,[role="button"]')];
-    const target=els.find(e=>normal(e.textContent).includes('PREVISAO DE ENTREGA'));
-    if(!target)return;
-    if(target.dataset.deliveryFixed==='1')return;
-    target.dataset.deliveryFixed='1';
-    target.addEventListener('click',function(e){e.preventDefault();e.stopImmediatePropagation();openDeliveryModal();},true);
-  }catch(e){}
-}
-app.addEventListener('load',function(){setTimeout(bindDeliveryButton,100);setTimeout(bindDeliveryButton,700);});
-setTimeout(bindDeliveryButton,1200);
-'''
-          if marker not in s:
-              s=s.replace('\nfunction setup(){','\n'+code+'\nfunction setup(){',1)
-          old="app.style.display='block';setTimeout(()=>{try{setup()}catch(e){}hideLoading();tools.style.display='flex'},700)"
-          new="app.style.display='block';setTimeout(()=>{try{setup()}catch(e){}bindDeliveryButton();hideLoading();tools.style.display='flex'},700)"
-          s=s.replace(old,new,1)
-          p.write_text(s,encoding='utf-8')
-          PY
+          echo 'ZnJvbSBwYXRobGliIGltcG9ydCBQYXRoCnA9UGF0aCgiaW5kZXguaHRtbCIpCnM9cC5yZWFkX3RleHQoZW5jb2Rpbmc9InV0Zi04IikKbWFya2VyPSIvKiBERUxJVkVSWV9CVVRUT05fRklYX1YzICovIgpjb2RlPSIiIi8qIERFTElWRVJZX0JVVFRPTl9GSVhfVjMgKi8KZnVuY3Rpb24gYmluZERlbGl2ZXJ5QnV0dG9uKCl7dHJ5e2NvbnN0IGQ9YXBwLmNvbnRlbnREb2N1bWVudDtpZighZHx8IWQuYm9keSlyZXR1cm47Y29uc3QgZWxzPVsuLi5kLnF1ZXJ5U2VsZWN0b3JBbGwoJ2EsYnV0dG9uLFtyb2xlPVwiYnV0dG9uXCJdJyldO2NvbnN0IHRhcmdldD1lbHMuZmluZChlPT5ub3JtYWwoZS50ZXh0Q29udGVudCkuaW5jbHVkZXMoJ1BSRVZJU0FPIERFIEVOVFJFR0EnKSk7aWYoIXRhcmdldHx8dGFyZ2V0LmRhdGFzZXQuZGVsaXZlcnlGaXhlZD09PScxJylyZXR1cm47dGFyZ2V0LmRhdGFzZXQuZGVsaXZlcnlGaXhlZD0nMSc7dGFyZ2V0LmFkZEV2ZW50TGlzdGVuZXIoJ2NsaWNrJyxlPT57ZS5wcmV2ZW50RGVmYXVsdCgpO2Uuc3RvcEltbWVkaWF0ZVByb3BhZ2F0aW9uKCk7b3BlbkRlbGl2ZXJ5TW9kYWwoKX0sdHJ1ZSl9Y2F0Y2goZSl7fX0KYXBwLmFkZEV2ZW50TGlzdGVuZXIoJ2xvYWQnLCgpPT57c2V0VGltZW91dChiaW5kRGVsaXZlcnlCdXR0b24sMTAwKTtzZXRUaW1lb3V0KGJpbmREZWxpdmVyeUJ1dHRvbiw3MDApfSk7c2V0VGltZW91dChiaW5kRGVsaXZlcnlCdXR0b24sMTIwMCk7CiIiIgppZiBtYXJrZXIgbm90IGluIHM6cz1zLnJlcGxhY2UoIlxuZnVuY3Rpb24gc2V0dXAoKXsiLCJcbiIrY29kZSsiXG5mdW5jdGlvbiBzZXR1cCgpeyIsMSkKcz1zLnJlcGxhY2UoImFwcC5zdHlsZS5kaXNwbGF5PSdibG9jayc7c2V0VGltZW91dCgoKT0+e3RyeXtzZXR1cCgpfWNhdGNoKGUpe31oaWRlTG9hZGluZygpO3Rvb2xzLnN0eWxlLmRpc3BsYXk9J2ZsZXgnfSw3MDApIiwiYXBwLnN0eWxlLmRpc3BsYXk9J2Jsb2NrJztzZXRUaW1lb3V0KCgpPT57dHJ5e3NldHVwKCl9Y2F0Y2goZSl7fWJpbmREZWxpdmVyeUJ1dHRvbigpO2hpZGVMb2FkaW5nKCk7dG9vbHMuc3R5bGUuZGlzcGxheT0nZmxleCd9LDcwMCkiLDEpCnAud3JpdGVfdGV4dChzLGVuY29kaW5nPSJ1dGYtOCIpCg==' | base64 -d > /tmp/patch.py
+          python3 /tmp/patch.py
       - name: Commit
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add index.html
-          git diff --cached --quiet && exit 0
-          git commit -m "Corrigir botão de previsão de entrega"
-          git push
+          git diff --cached --quiet || (git commit -m 'Corrigir botão de previsão de entrega' && git push)
