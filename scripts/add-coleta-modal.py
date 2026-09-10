@@ -44,7 +44,7 @@ js='''
  function open(){const m=$('coletaModal');if(m){m.classList.add('show');m.setAttribute('aria-hidden','false');setTimeout(()=>$('coletaCnpj')?.focus(),50)}}
  function close(){const m=$('coletaModal');if(m){m.classList.remove('show');m.setAttribute('aria-hidden','true')}}
  window.openColetaModal=open;
- function bind(){try{const d=app.contentDocument;if(!d||!d.body)return;if(d.__coletaDelegate)return;d.__coletaDelegate=true;d.addEventListener('click',function(e){const nodes=[];let el=e.target;while(el&&el!==d.body){nodes.push(el);el=el.parentElement}for(const n of nodes){const t=normal(n.textContent||'').trim();if(t==='COLETA'||t.includes(' COLETA')){e.preventDefault();e.stopPropagation();open();return}}},true)}catch(e){}}
+ function bind(){try{const d=app.contentDocument;if(!d||!d.body)return;if(d.__coletaDelegate)return;d.__coletaDelegate=true;d.addEventListener('click',function(e){const nodes=[];let el=e.target;while(el&&el!==d.body){nodes.push(el);el=el.parentElement}for(const n of nodes){const t=String(n.textContent||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toUpperCase();if(t==='COLETA'||t.includes(' COLETA')){e.preventDefault();e.stopPropagation();open();return}}},true)}catch(e){}}
  window.bindColetaButton=bind;
  bind();
  app.addEventListener('load',()=>{bind();setTimeout(bind,100);setTimeout(bind,500)});
