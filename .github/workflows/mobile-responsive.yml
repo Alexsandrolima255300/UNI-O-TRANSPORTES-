@@ -1,0 +1,87 @@
+name: Versão mobile responsiva
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  mobile:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Aplicar ajustes mobile sem alterar a versão desktop
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          p = Path('app.html')
+          s = p.read_text(encoding='utf-8')
+
+          marker = '/* MOBILE_RESPONSIVE_V1 */'
+          if marker in s:
+              print('Ajuste mobile já aplicado.')
+              raise SystemExit(0)
+
+          css = '''<style>
+          /* MOBILE_RESPONSIVE_V1 */
+          @media (max-width: 600px){
+            html,body{width:100%;max-width:100%;overflow-x:hidden}
+            header{width:100%;box-sizing:border-box;padding:8px 10px!important}
+            header .head{width:100%;min-height:0!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:8px!important}
+            header .logo{width:min(100%,230px)!important;height:auto!important;max-height:92px!important;object-fit:contain!important;margin:0 auto!important}
+            .ue-nav{width:100%!important;max-width:100%!important;margin:0!important;display:flex!important;justify-content:flex-start!important;gap:18px!important;overflow-x:auto!important;overflow-y:hidden!important;padding:6px 2px!important;white-space:nowrap!important;-webkit-overflow-scrolling:touch!important;scrollbar-width:none!important}
+            .ue-nav::-webkit-scrollbar{display:none!important}
+            .ue-nav-item{flex:0 0 auto!important;font-size:9px!important;letter-spacing:.035em!important}
+            main{width:100%;box-sizing:border-box;padding:18px 10px 40px!important}
+            .hero{display:block!important;margin-bottom:16px!important}
+            .hero h1{font-size:34px!important;line-height:1.04!important;margin:7px 0 12px!important}
+            .hero p{font-size:15px!important;line-height:1.5!important;margin-bottom:0!important}
+            .card{width:100%;box-sizing:border-box;padding:17px!important;border-radius:17px!important}
+            .grid{display:block!important}
+            .fg{grid-template-columns:1fr!important;gap:11px!important}
+            .field{width:100%!important;min-width:0!important}
+            input,select{width:100%;box-sizing:border-box;font-size:16px!important;min-height:48px}
+            .actions{display:grid!important;grid-template-columns:1fr!important;gap:9px!important}
+            .actions button{width:100%!important;min-height:46px}
+            .result{padding:16px!important}
+            .rh{display:flex!important;flex-direction:column!important;gap:9px!important}
+            .total{font-size:31px!important}
+            .bd{grid-template-columns:1fr!important;gap:2px 0!important}
+            .line{gap:12px!important}
+            .line b{text-align:right}
+            .chips{gap:6px!important}
+            .chip{font-size:10px!important}
+            #citiesToggle{min-height:46px!important}
+            #citiesContent{width:100%!important;overflow:hidden!important}
+            .stateGrid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:7px!important}
+            #search{width:100%!important;box-sizing:border-box!important;margin-top:4px!important}
+            .tableWrap{width:100%!important;max-width:100%!important;overflow-x:auto!important;-webkit-overflow-scrolling:touch!important}
+            table{min-width:680px!important}
+            footer{padding:0 8px!important}
+          }
+          @media (max-width:380px){
+            .hero h1{font-size:30px!important}
+            .ue-nav{gap:15px!important}
+            .ue-nav-item{font-size:8px!important}
+            .stateGrid{grid-template-columns:1fr!important}
+          }
+          </style>'''
+
+          if '</head>' not in s:
+              raise SystemExit('Não foi encontrado </head> em app.html')
+
+          s = s.replace('</head>', css + '</head>', 1)
+          p.write_text(s, encoding='utf-8')
+          print('Ajuste mobile aplicado sem alterar funções ou dados.')
+          PY
+
+      - name: Commitar alteração
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app.html
+          git diff --cached --quiet || git commit -m "feat: versão mobile responsiva [skip ci]"
+          git push
