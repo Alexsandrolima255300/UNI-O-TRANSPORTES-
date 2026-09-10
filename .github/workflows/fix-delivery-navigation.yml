@@ -1,0 +1,38 @@
+name: Fix delivery prediction navigation
+on:
+  push:
+    branches: [main]
+permissions:
+  contents: write
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Patch delivery navigation
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('app.html')
+          s=p.read_text(encoding='utf-8')
+          nav='''<nav class="ue-nav" aria-label="Menu principal"><a class="ue-nav-item" href="#cotacao">COTAÇÃO</a><a class="ue-nav-item" href="#previsao" id="ueDeliveryBtn" role="button">PREVISÃO DE ENTREGA</a><a class="ue-nav-item" href="#rastreamento" id="ueTrackBtn" role="button">RASTREAR CARGA</a><a class="ue-nav-item" href="#coleta" id="ueColetaBtn" role="button">COLETA</a></nav>'''
+          if 'id="ueDeliveryBtn"' not in s:
+              marker='<div class="brand">COTAÇÃO DE FRETE<br><b>UNIÃO EXPRESS • UBERABA</b></div>'
+              if marker in s:
+                  s=s.replace(marker, nav+marker, 1)
+              else:
+                  marker2='</div></header>'
+                  s=s.replace(marker2, nav+marker2, 1)
+          bridge='''<script>\n(function(){\nfunction parentFn(name){try{return window.parent&&typeof window.parent[name]==='function'?window.parent[name]:null}catch(e){return null}}\ndocument.addEventListener('click',function(e){var el=e.target.closest&&e.target.closest('#ueDeliveryBtn');if(el){e.preventDefault();var fn=parentFn('openDeliveryModal');if(fn)fn();else if(window.parent!==window)window.parent.postMessage({type:'OPEN_DELIVERY_MODAL'},'*')}} ,true);\ndocument.addEventListener('click',function(e){var el=e.target.closest&&e.target.closest('#ueTrackBtn');if(el){e.preventDefault();window.parent.open('https://ssw.inf.br/2/rastreamento','_blank','noopener,noreferrer')}} ,true);\ndocument.addEventListener('click',function(e){var el=e.target.closest&&e.target.closest('#ueColetaBtn');if(el){e.preventDefault();var fn=parentFn('openColetaModal');if(fn)fn();else if(window.parent!==window)window.parent.postMessage({type:'OPEN_COLETA_MODAL'},'*')}} ,true);\n})();\n</script>'''
+          if 'id="ueDeliveryBtn"' in s and 'OPEN_DELIVERY_MODAL' not in s:
+              s=s.replace('</body>',bridge+'</body>')
+          p.write_text(s,encoding='utf-8')
+          PY
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app.html
+          git diff --cached --quiet && exit 0
+          git commit -m "fix: restore delivery prediction navigation [skip ci]"
+          git push
