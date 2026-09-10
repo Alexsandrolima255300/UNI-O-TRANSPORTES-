@@ -1,0 +1,32 @@
+name: Corrigir botão Coleta
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Corrigir normalização do botão Coleta
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('scripts/add-coleta-modal.py')
+          s=p.read_text(encoding='utf-8')
+          old="const t=normal(n.textContent||'').trim();"
+          new="const t=String(n.textContent||'').normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').trim().toUpperCase();"
+          if old not in s:
+              raise SystemExit('trecho esperado não encontrado')
+          s=s.replace(old,new)
+          p.write_text(s,encoding='utf-8')
+          PY
+      - name: Reaplicar coleta no index
+        run: python scripts/add-coleta-modal.py
+      - name: Commit
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add scripts/add-coleta-modal.py index.html
+          git diff --cached --quiet || git commit -m 'Corrigir funcionamento do botão Coleta'
+          git push
