@@ -1,0 +1,121 @@
+name: add-delivery-prediction
+on:
+  push:
+    branches: [main]
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Add previsão de entrega
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('index.html')
+          s=p.read_text(encoding='utf-8')
+          marker='/* DELIVERY_PREDICTION_CSS */'
+          css='''/* DELIVERY_PREDICTION_CSS */
+.delivery-modal{position:fixed;inset:0;z-index:30000;background:rgba(8,25,45,.66);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;padding:18px}
+.delivery-modal.show{display:flex}
+.delivery-card{width:min(620px,100%);background:#fff;border-radius:24px;padding:28px;box-shadow:0 28px 90px rgba(0,30,70,.35);color:#10233f}
+.delivery-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:20px}
+.delivery-head h2{margin:0;font-size:24px;letter-spacing:-.03em}.delivery-head p{margin:6px 0 0;color:#64758b;font-size:13px;line-height:1.5}
+.delivery-close{border:0;background:#edf5fd;color:#0758b7;border-radius:10px;padding:9px 12px;font-weight:900;cursor:pointer}
+.delivery-form{display:grid;gap:14px}.delivery-fields{display:grid;grid-template-columns:1fr 1fr;gap:12px}.delivery-field{display:flex;flex-direction:column;gap:7px}.delivery-field label{font-size:12px;font-weight:900}.delivery-field input{width:100%;padding:13px;border:1px solid #cfd9e5;border-radius:11px;font-size:15px;outline:0}.delivery-field input:focus{border-color:#007ECB;box-shadow:0 0 0 4px rgba(0,126,203,.12)}
+.delivery-consult{border:0;border-radius:12px;padding:14px 16px;background:#007ECB;color:#fff;font-weight:900;cursor:pointer}.delivery-consult:hover{background:#006eb5}
+.delivery-result{display:none;margin-top:4px;padding:16px;border-radius:15px;border:1px solid #cfe4ff;background:#f0f7ff}.delivery-result.show{display:block}.delivery-result.ok{border-color:#bfe6d0;background:#effbf4}.delivery-result.no{border-color:#f1c6c6;background:#fff4f4}.delivery-result-title{font-size:16px;font-weight:950;margin-bottom:5px}.delivery-result-text{font-size:12px;color:#50657c;line-height:1.55}.delivery-days{font-size:25px;font-weight:950;color:#0758b7;margin-top:9px}.delivery-no{color:#b42318}.delivery-note{margin-top:13px;font-size:10px;color:#7a8a9c;line-height:1.5}
+@media(max-width:600px){.delivery-card{padding:22px}.delivery-fields{grid-template-columns:1fr}.delivery-head h2{font-size:21px}}
+'''
+          if marker not in s:
+              s=s.replace('</style>',css+'</style>',1)
+          modal='''
+<div class="delivery-modal" id="deliveryModal" aria-hidden="true">
+  <div class="delivery-card" role="dialog" aria-modal="true" aria-labelledby="deliveryTitle">
+    <div class="delivery-head"><div><h2 id="deliveryTitle">Previsão de entrega</h2><p>Informe o CEP ou a cidade de destino para consultar se a União Express atende a região e ver a previsão de entrega.</p></div><button class="delivery-close" id="deliveryClose" type="button">Fechar</button></div>
+    <div class="delivery-form">
+      <div class="delivery-fields">
+        <div class="delivery-field"><label for="deliveryCep">CEP</label><input id="deliveryCep" inputmode="numeric" maxlength="9" placeholder="00000-000"></div>
+        <div class="delivery-field"><label for="deliveryCity">Cidade</label><input id="deliveryCity" placeholder="Ex.: Uberlândia"></div>
+      </div>
+      <button class="delivery-consult" id="deliveryConsult" type="button">Consultar previsão</button>
+      <div class="delivery-result" id="deliveryResult"><div class="delivery-result-title" id="deliveryResultTitle"></div><div class="delivery-result-text" id="deliveryResultText"></div><div class="delivery-days" id="deliveryDays"></div></div>
+      <div class="delivery-note">A previsão é estimada em dias úteis e pode variar conforme coleta, rota, volume e condições operacionais.</div>
+    </div>
+  </div>
+</div>
+'''
+          if 'id="deliveryModal"' not in s:
+              s=s.replace('\n<script>\n',modal+'\n<script>\n',1)
+          func=r'''
+function setupDeliveryPrediction(d){
+  const nav=[...d.querySelectorAll('a,button,[role="button"],div,span')].find(e=>normal(e.textContent)==='PREVISÃO DE ENTREGA');
+  if(!nav||nav.dataset.deliveryBound==='1')return;
+  nav.dataset.deliveryBound='1';
+  nav.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();openDeliveryModal()});
+}
+function deliveryStateFromText(text){const m=(text||'').match(/(?:\/|-|\|)\s*([A-Z]{2})\b/i);return m?m[1].toUpperCase():''}
+function deliveryEstimate(city,uf){
+  const c=normal(city);
+  if(c==='UBERABA')return '1 dia útil';
+  if(uf==='MG')return '1 a 3 dias úteis';
+  if(uf==='SP')return '2 a 4 dias úteis';
+  if(uf==='RJ'||uf==='ES'||uf==='GO'||uf==='DF')return '3 a 5 dias úteis';
+  return '4 a 7 dias úteis';
+}
+function openDeliveryModal(){
+  const m=document.getElementById('deliveryModal');if(!m)return;
+  m.classList.add('show');m.setAttribute('aria-hidden','false');
+  const r=document.getElementById('deliveryResult');if(r){r.className='delivery-result';r.style.display='none'}
+  document.getElementById('deliveryCep').focus();
+}
+function closeDeliveryModal(){const m=document.getElementById('deliveryModal');if(m){m.classList.remove('show');m.setAttribute('aria-hidden','true')}}
+async function consultDelivery(){
+  const cepEl=document.getElementById('deliveryCep'),cityEl=document.getElementById('deliveryCity');
+  const result=document.getElementById('deliveryResult'),title=document.getElementById('deliveryResultTitle'),text=document.getElementById('deliveryResultText'),days=document.getElementById('deliveryDays');
+  let cep=cepEl.value.replace(/\D/g,'').slice(0,8),city=cityEl.value.trim(),uf='';
+  if(!cep && !city){result.className='delivery-result show no';title.textContent='Informe um CEP ou uma cidade';text.textContent='Digite um dos dois dados para consultar a região de entrega.';days.textContent='';return}
+  const frameDoc=app.contentDocument;
+  const dest=frameDoc&&frameDoc.getElementById('dest');
+  let matched=null;
+  if(cep){
+    if(cep.length!==8){result.className='delivery-result show no';title.textContent='CEP inválido';text.textContent='Digite um CEP com 8 números.';days.textContent='';return}
+    try{
+      const response=await fetch('https://viacep.com.br/ws/'+cep+'/json/');const data=await response.json();
+      if(data.erro){result.className='delivery-result show no';title.textContent='CEP não encontrado';text.textContent='Não foi possível localizar esse CEP.';days.textContent='';return}
+      city=data.localidade||'';uf=data.uf||'';cityEl.value=city;
+    }catch(e){result.className='delivery-result show no';title.textContent='Não foi possível consultar o CEP';text.textContent='Tente novamente ou informe a cidade diretamente.';days.textContent='';return}
+  }
+  if(dest&&city){
+    const nc=normal(city);
+    matched=[...dest.options].find(o=>{const txt=normal(o.textContent);return txt===nc||txt.startsWith(nc+' /')||txt.includes(nc)});
+    if(matched&&!uf)uf=deliveryStateFromText(matched.textContent);
+  }
+  if(!matched){
+    result.className='delivery-result show no';title.innerHTML='✕ A União Express não atende esta cidade';text.textContent=(city?city:'A cidade informada')+(uf?' / '+uf:'')+' não está na área de atendimento cadastrada.';days.textContent='';return;
+  }
+  if(dest){dest.value=matched.value;dest.dispatchEvent(new Event('change',{bubbles:true}))}
+  const servedCity=matched.dataset.city||matched.textContent.replace(/\s*\/.*$/,'').trim();
+  const state=uf||deliveryStateFromText(matched.textContent);
+  result.className='delivery-result show ok';title.textContent='✓ A União Express atende esta cidade';text.textContent=servedCity+(state?' / '+state:'')+' está na área de atendimento.';days.textContent='Previsão: '+deliveryEstimate(servedCity,state);
+}
+'''
+          needle="document.getElementById('loginForm').addEventListener('submit'"
+          if 'function setupDeliveryPrediction' not in s:
+              s=s.replace(needle,func+'\n'+needle,1)
+          s=s.replace('setupCities(d);hideLoading();return true}', 'setupCities(d);setupDeliveryPrediction(d);hideLoading();return true}', 1)
+          hook="const modal=document.getElementById('calcModal');"
+          binds="document.getElementById('deliveryClose').onclick=closeDeliveryModal;document.getElementById('deliveryConsult').onclick=consultDelivery;document.getElementById('deliveryCep').addEventListener('input',e=>{let v=e.target.value.replace(/\D/g,'').slice(0,8);e.target.value=v.length>5?v.slice(0,5)+'-'+v.slice(5):v});document.getElementById('deliveryModal').addEventListener('click',e=>{if(e.target.id==='deliveryModal')closeDeliveryModal()});"
+          if binds not in s:
+              s=s.replace(hook,binds+hook,1)
+          p.write_text(s,encoding='utf-8')
+          PY
+      - name: Commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git diff --cached --quiet && exit 0
+          git commit -m "Adicionar consulta de previsão de entrega"
+          git push
