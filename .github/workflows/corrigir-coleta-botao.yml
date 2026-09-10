@@ -1,5 +1,8 @@
 name: Corrigir botão Coleta
 on:
+  push:
+    paths:
+      - '.github/workflows/corrigir-coleta-botao.yml'
   workflow_dispatch:
 permissions:
   contents: write
