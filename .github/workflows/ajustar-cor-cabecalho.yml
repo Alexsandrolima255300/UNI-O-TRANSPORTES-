@@ -2,10 +2,9 @@ name: Ajustar cor do cabeçalho
 on:
   push:
     branches: [main]
-    paths:
-      - '.github/workflows/ajustar-cor-cabecalho.yml'
 jobs:
   ajustar:
+    if: github.event.head_commit.message != 'style: match header color to logo [skip ci]'
     runs-on: ubuntu-latest
     permissions:
       contents: write
