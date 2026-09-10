@@ -36,4 +36,4 @@ patch=r'''<script>
 '''
 s=s.replace('</body>',patch+'</body>',1)
 p.write_text(s,encoding='utf-8')
-print('direct collection binding applied')
+print('direct collection binding applied - trigger')
