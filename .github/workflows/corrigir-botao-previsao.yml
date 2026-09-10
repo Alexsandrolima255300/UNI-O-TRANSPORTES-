@@ -1,0 +1,50 @@
+name: fix-delivery-button
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Corrigir botão previsão
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('index.html')
+          s=p.read_text(encoding='utf-8')
+          marker='/* DELIVERY_BUTTON_FIX_V2 */'
+          code=r'''/* DELIVERY_BUTTON_FIX_V2 */
+function bindDeliveryButton(){
+  try{
+    const d=app.contentDocument;
+    if(!d||!d.body)return;
+    const els=[...d.querySelectorAll('a,button,[role="button"]')];
+    const target=els.find(e=>normal(e.textContent).includes('PREVISAO DE ENTREGA'));
+    if(!target)return;
+    if(target.dataset.deliveryFixed==='1')return;
+    target.dataset.deliveryFixed='1';
+    target.addEventListener('click',function(e){e.preventDefault();e.stopImmediatePropagation();openDeliveryModal();},true);
+  }catch(e){}
+}
+app.addEventListener('load',function(){setTimeout(bindDeliveryButton,100);setTimeout(bindDeliveryButton,700);});
+setTimeout(bindDeliveryButton,1200);
+'''
+          if marker not in s:
+              s=s.replace('\nfunction setup(){','\n'+code+'\nfunction setup(){',1)
+          old="app.style.display='block';setTimeout(()=>{try{setup()}catch(e){}hideLoading();tools.style.display='flex'},700)"
+          new="app.style.display='block';setTimeout(()=>{try{setup()}catch(e){}bindDeliveryButton();hideLoading();tools.style.display='flex'},700)"
+          s=s.replace(old,new,1)
+          p.write_text(s,encoding='utf-8')
+          PY
+      - name: Commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git diff --cached --quiet && exit 0
+          git commit -m "Corrigir botão de previsão de entrega"
+          git push
