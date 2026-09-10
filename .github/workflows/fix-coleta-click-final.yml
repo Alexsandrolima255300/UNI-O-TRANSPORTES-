@@ -3,6 +3,7 @@ on:
   push:
     paths:
       - 'scripts/fix-coleta-click.py'
+      - '.github/workflows/fix-coleta-click-final.yml'
   workflow_dispatch:
 permissions:
   contents: write
