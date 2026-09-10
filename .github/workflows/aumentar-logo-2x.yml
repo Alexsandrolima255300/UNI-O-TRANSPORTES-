@@ -1,0 +1,31 @@
+name: Aumentar logo 2x
+on:
+  workflow_dispatch:
+
+jobs:
+  ajustar:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Aumentar logo para 2x
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('app.html')
+          s = p.read_text(encoding='utf-8')
+          s = s.replace('header .logo{width:300px!important;height:70px!important;', 'header .logo{width:600px!important;height:140px!important;')
+          s = s.replace('header .head{max-width:1400px!important;min-height:78px!important;', 'header .head{max-width:1400px!important;min-height:148px!important;')
+          s = s.replace('header .logo{width:255px!important;height:64px!important}', 'header .logo{width:510px!important;height:128px!important}')
+          s = s.replace('header .head{min-height:68px!important;gap:12px!important}', 'header .head{min-height:108px!important;gap:12px!important}')
+          s = s.replace('header .logo{width:205px!important;height:60px!important}', 'header .logo{width:410px!important;height:120px!important}')
+          p.write_text(s, encoding='utf-8')
+          PY
+      - name: Commit
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add app.html
+          git diff --cached --quiet || git commit -m 'Aumentar logo do cabeçalho para o dobro'
+          git push
