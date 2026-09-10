@@ -1,0 +1,19 @@
+name: limpar-correcao-temporaria
+on:
+  push:
+    branches: [main]
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Remover arquivos temporarios
+        run: rm -f scripts/fix-delivery-button.py .github/workflows/aplicar-correcao-previsao.yml .github/workflows/limpar-correcao-temporaria.yml
+      - name: Commit limpeza
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git diff --cached --quiet || (git commit -m 'Limpar arquivos temporarios da correcao' && git push)
