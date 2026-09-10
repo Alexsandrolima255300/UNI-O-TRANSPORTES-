@@ -1,0 +1,22 @@
+name: Aplicar previsão de entrega V5
+on:
+  push:
+    paths:
+      - 'scripts/fix-delivery-estimate-v5.py'
+  workflow_dispatch:
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Aplicar V5
+        run: python3 scripts/fix-delivery-estimate-v5.py
+      - name: Commit
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html
+          git diff --cached --quiet || git commit -m 'Corrigir exibição do prazo de entrega'
+          git push
