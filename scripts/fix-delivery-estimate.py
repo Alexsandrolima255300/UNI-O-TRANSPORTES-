@@ -21,3 +21,4 @@ patch=r'''/* DELIVERY_ESTIMATE_FIX_V4 */
 if needle not in s: raise SystemExit('script end not found')
 s=s.replace(needle,patch+needle,1)
 p.write_text(s,encoding='utf-8')
+
