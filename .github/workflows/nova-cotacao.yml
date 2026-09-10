@@ -1,0 +1,45 @@
+name: Adicionar botão Nova cotação
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  nova-cotacao:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Adicionar somente o botão Nova cotação
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('app.html')
+          s = p.read_text(encoding='utf-8')
+          marker = '/* NOVA_COTACAO_V1 */'
+          if marker in s:
+              raise SystemExit(0)
+
+          old = '<button class="ghost" onclick="printQ()">Imprimir</button>'
+          new = old + '<button id="newQuoteBtn" class="ghost" type="button" onclick="newQuote()">Nova cotação</button>'
+          if old not in s:
+              raise SystemExit('Botão Imprimir não encontrado')
+          s = s.replace(old, new, 1)
+
+          css = '''\n<style>\n/* NOVA_COTACAO_V1 */\n#newQuoteBtn{display:none}\n#res.show #newQuoteBtn{display:inline-flex;align-items:center;justify-content:center}\n</style>\n'''
+          s = s.replace('</style></head>', css + '</style></head>', 1)
+
+          js = '''\n<script>\nfunction newQuote(){\n  const res=document.getElementById('res');\n  if(res) res.classList.remove('show');\n  ['dest','cep','nf','kg'].forEach(id=>{const e=document.getElementById(id);if(e){e.value='';}});\n  const dest=document.getElementById('dest');\n  if(dest) dest.selectedIndex=0;\n  window.scrollTo({top:0,behavior:'smooth'});\n  const first=document.getElementById('dest');\n  if(first) setTimeout(()=>first.focus(),250);\n}\n</script>\n'''
+          s = s.replace('</body>', js + '</body>', 1)
+          p.write_text(s, encoding='utf-8')
+          PY
+      - name: Commitar alteração
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add app.html
+          git diff --cached --quiet && exit 0
+          git commit -m 'feat: adicionar botão Nova cotação [skip ci]'
+          git push
