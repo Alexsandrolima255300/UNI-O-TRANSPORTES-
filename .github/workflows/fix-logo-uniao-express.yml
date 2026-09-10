@@ -16,7 +16,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Replace embedded header logo
+      - name: Replace embedded header logo and match logo blue
         shell: python
         run: |
           from pathlib import Path
@@ -31,13 +31,10 @@ jobs:
           if count == 0:
               raise SystemExit('Logo do cabeçalho não encontrada em app.html')
 
-          if new_text == text:
-              print('Logo já está usando logo-uniao-express.jpeg')
-              raise SystemExit(0)
-
+          new_text = new_text.replace('header{background:linear-gradient(135deg,#064ea8,#0868cc)!important;', 'header{background:#0057a8!important;', 1)
           path.write_text(new_text, encoding='utf-8')
 
-      - name: Commit logo change
+      - name: Commit logo/color change
         shell: bash
         run: |
           git config user.name "github-actions[bot]"
@@ -47,5 +44,5 @@ jobs:
             echo "Nenhuma alteração necessária."
             exit 0
           fi
-          git commit -m "fix: use logo-uniao-express.jpeg in header [skip ci]"
+          git commit -m "style: match header color to logo [skip ci]"
           git push
