@@ -71,5 +71,4 @@ patch=r'''
 s=s.replace('</body>',patch+'\n</body>',1)
 p.write_text(s,encoding='utf-8')
 print('collection click patch applied')
-# trigger workflow after workflow file exists
-# v2 trigger
+# force workflow execution now that the workflow exists
