@@ -1,0 +1,56 @@
+name: Restore CEP field in quotation
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  restore-cep:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Add CEP field without changing quotation logic
+        shell: python
+        run: |
+          from pathlib import Path
+          import re
+
+          path = Path('app.html')
+          text = path.read_text(encoding='utf-8')
+
+          field = '<div class="field"><label for="cep">CEP de destino</label><input id="cep" inputmode="numeric" maxlength="9" placeholder="00000-000"></div>'
+
+          if 'id="cep"' not in text:
+              anchor = '<div class="field"><label>Destino</label><select id="dest"></select></div>'
+              if anchor not in text:
+                  raise SystemExit('Campo Destino não encontrado em app.html')
+              text = text.replace(anchor, anchor + field, 1)
+
+          script = "document.getElementById('cep').addEventListener('input',e=>{let v=e.target.value.replace(/\\D/g,'').slice(0,8);e.target.value=v.length>5?v.slice(0,5)+'-'+v.slice(5):v});"
+          if 'getElementById(\'cep\')' not in text and 'getElementById(\"cep\")' not in text:
+              marker = '</script>'
+              if marker not in text:
+                  raise SystemExit('Script principal não encontrado em app.html')
+              text = text.replace(marker, script + marker, 1)
+
+          path.write_text(text, encoding='utf-8')
+
+      - name: Commit change
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app.html
+          if git diff --cached --quiet; then
+            echo "CEP já está presente."
+            exit 0
+          fi
+          git commit -m "fix: restore CEP field in quotation [skip ci]"
+          git push
