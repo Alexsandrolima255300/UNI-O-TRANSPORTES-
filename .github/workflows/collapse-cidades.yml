@@ -1,0 +1,37 @@
+name: Recolher cidades da tela principal
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  collapse-cidades:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Adicionar somente o recolhimento das cidades
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('app.html')
+          s=p.read_text(encoding='utf-8')
+          marker='/* COLLAPSE_CIDADES_V1 */'
+          if marker in s:
+              raise SystemExit(0)
+          css='''\n<style>\n/* COLLAPSE_CIDADES_V1 */\n#citiesToggle{width:100%;margin-top:6px;display:flex;align-items:center;justify-content:space-between;text-align:left;background:#edf5fd;color:#0758b7;border:1px solid #d7e7f7;padding:12px 14px;border-radius:11px;font-weight:900;cursor:pointer}\n#citiesToggle .cities-arrow{font-size:12px;transition:transform .2s ease}\n#citiesToggle.open .cities-arrow{transform:rotate(180deg)}\n#citiesContent{display:none}\n#citiesContent.open{display:block}\n</style>\n'''
+          js='''\n<script>\n(function(){\n  const section=[...document.querySelectorAll('section.card')].find(x=>x.querySelector('#states')&&x.querySelector('#body'));\n  if(!section||document.getElementById('citiesToggle')) return;\n  const states=document.getElementById('states');\n  const search=document.getElementById('search');\n  const table=search?.nextElementSibling;\n  const content=document.createElement('div');\n  content.id='citiesContent';\n  const items=[];\n  [states,search,table].forEach(el=>{if(el){items.push(el);content.appendChild(el)}});\n  section.appendChild(content);\n  const button=document.createElement('button');\n  button.id='citiesToggle';\n  button.type='button';\n  button.setAttribute('aria-expanded','false');\n  button.innerHTML='<span>Mostrar cidades atendidas</span><span class="cities-arrow">▼</span>';\n  section.querySelector('.sub')?.insertAdjacentElement('afterend',button);\n  button.addEventListener('click',()=>{\n    const open=content.classList.toggle('open');\n    button.classList.toggle('open',open);\n    button.setAttribute('aria-expanded',String(open));\n    button.querySelector('span').textContent=open?'Ocultar cidades atendidas':'Mostrar cidades atendidas';\n  });\n})();\n</script>\n'''
+          s=s.replace('</style></head>',css+'</style></head>',1)
+          s=s.replace('</body>',js+'</body>',1)
+          p.write_text(s,encoding='utf-8')
+          PY
+      - name: Commitar alteração
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add app.html
+          git diff --cached --quiet && exit 0
+          git commit -m 'feat: recolher cidades na tela principal [skip ci]'
+          git push
