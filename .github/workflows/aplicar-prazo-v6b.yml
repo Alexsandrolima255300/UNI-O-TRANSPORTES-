@@ -1,0 +1,18 @@
+name: Corrigir previsao de entrega
+on:
+  push:
+    branches: [main]
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Aplicar V6
+        run: python scripts/fix-prazo-previsao-v6.py || true
+      - name: Commitar
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          if grep -q 'DELIVERY_PREDICTION_V6' index.html; then git add index.html; git diff --cached --quiet || git commit -m 'Colocar prazo na pagina de previsao de entrega'; git push; fi
