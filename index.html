@@ -29,25 +29,44 @@ function closeDeliveryModal(){const m=document.getElementById('deliveryModal');m
 async function consultDelivery(){const cep=document.getElementById('deliveryCep').value.replace(/\D/g,''),cityInput=document.getElementById('deliveryCity'),result=document.getElementById('deliveryResult'),title=document.getElementById('deliveryResultTitle'),text=document.getElementById('deliveryResultText'),days=document.getElementById('deliveryDays');let city=cityInput.value.trim(),uf='';if(cep&&cep.length===8){try{const d=await fetch('https://viacep.com.br/ws/'+cep+'/json/').then(r=>r.json());if(d.erro)throw Error();city=d.localidade||city;uf=d.uf||'';cityInput.value=city}catch(e){result.className='delivery-result show no';title.textContent='CEP não encontrado';text.textContent='Informe a cidade manualmente.';days.textContent='';return}}if(!city){result.className='delivery-result show no';title.textContent='Informe um CEP ou uma cidade';text.textContent='Digite um dos dois dados para consultar.';days.textContent='';return}const doc=app.contentDocument;const opts=doc?[...doc.querySelectorAll('select option')]:[];const wanted=normal(city);const opt=opts.find(o=>normal(o.textContent).includes(wanted));if(!opt){result.className='delivery-result show no';title.textContent='✕ A União Express não atende esta cidade';text.textContent=city+(uf?' / '+uf:'')+' não está na base cadastrada.';days.textContent='';return}const state=uf||((normal(opt.textContent).match(/\b(MG|SP|RJ|ES|GO|DF|PR|SC|RS|BA|PE|CE|PA|MS|MT)\b/)||[])[1]||'');result.className='delivery-result show ok';title.textContent='✓ A União Express atende esta cidade';text.textContent='Destino confirmado: '+city+(state?' / '+state:'');days.textContent='Prazo estimado: '+(state==='MG'?'1 a 3 dias úteis':state==='SP'?'2 a 4 dias úteis':state==='RJ'||state==='ES'?'3 a 5 dias úteis':'4 a 7 dias úteis')}
 document.getElementById('loginForm').addEventListener('submit',e=>{e.preventDefault();const err=document.getElementById('loginError');const username=document.getElementById('username').value.trim();const password=document.getElementById('password').value;const valid=USERS.some(user=>user.username===username&&user.password===password);if(valid){err.textContent='';showApp()}else{err.textContent='Usuário ou senha incorretos.';document.getElementById('password').value='';document.getElementById('password').focus()}});
 app.addEventListener('load',()=>{hideLoading()});
-document.getElementById('deliveryClose').onclick=closeDeliveryModal;document.getElementById('deliveryConsult').onclick=consultDelivery;document.getElementById('deliveryCep').addEventListener('input',e=>{let v=e.target.value.replace(/\D/g,'').slice(0,8);e.target.value=v.length>5?v.slice(0,5)+'-'+v.slice(5):v});document.getElementById('deliveryModal').addEventListener('click',e=>{if(e.target.id==='deliveryModal')closeDeliveryModal()});const modal=document.getElementById('calcModal');document.getElementById('calcClose').onclick=()=>modal.classList.remove('show');modal.addEventListener('click',e=>{if(e.target===modal)modal.classList.remove('show')});
+document.getElementById('deliveryClose').onclick=closeDeliveryModal;document.getElementById('deliveryConsult').onclick=consultDelivery;document.getElementById('deliveryCep').addEventListener('input',e=>{let v=e.target.value.replace(/\D/g,'').slice(0,8);e.target.value=v.length>5?v.slice(0,5)+'-'+v.slice(5):v});document.getElementById('deliveryModal').addEventListener('click',e=>{if(e.target.id==='deliveryModal')closeDeliveryModal()});window.openCalcModal=()=>{const m=document.getElementById('calcModal');m.classList.add('show');m.setAttribute('aria-hidden','false')};window.closeCalcModal=()=>{const m=document.getElementById('calcModal');m.classList.remove('show');m.setAttribute('aria-hidden','true')};const modal=document.getElementById('calcModal');document.getElementById('calcClose').onclick=()=>modal.classList.remove('show');modal.addEventListener('click',e=>{if(e.target===modal)modal.classList.remove('show')});
 </script>
 <script src="coleta.js"></script>
 <script>
-/* DELIVERY_PREDICTION_V6 */
+/* DELIVERY_PREDICTION_V7 */
 (function(){
-  const norm=v=>(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ').trim().toUpperCase();
+  const norm=v=>(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^A-Z0-9]+/gi,' ').trim().toUpperCase();
   const $=id=>document.getElementById(id);
-  function days(city,uf){city=norm(city);uf=norm(uf);if(city==='UBERABA'||city==='UBERLANDIA')return '1 dia útil';if(uf==='MG')return '1 a 3 dias úteis';if(uf==='SP')return '2 a 4 dias úteis';if(uf==='RJ'||uf==='ES'||uf==='GO'||uf==='DF')return '3 a 5 dias úteis';return '4 a 7 dias úteis'}
   function show(ok,title,text,prazo){const box=$('deliveryResult'),t=$('deliveryResultTitle'),tx=$('deliveryResultText'),d=$('deliveryDays');if(!box)return;box.style.setProperty('display','block','important');box.className='delivery-result show '+(ok?'ok':'no');t.textContent=title;tx.textContent=text;d.textContent=prazo||'';d.style.setProperty('display',prazo?'block':'none','important')}
-  function find(city,uf){const frame=$('app'),doc=frame&&frame.contentDocument;if(!doc)return null;const wanted=norm(city),state=norm(uf);for(const sel of [...doc.querySelectorAll('select')])for(const opt of [...sel.options]){const txt=norm(opt.textContent);if(txt.includes(wanted)&&(state===''||txt.includes(state)))return opt}return null}
-  const original=window.consultDelivery;
-  window.consultDelivery=async function(){
-    const cep=$('deliveryCep').value.replace(/\D/g,''),cityInput=$('deliveryCity');let city=cityInput.value.trim(),uf='';
-    if(cep.length===8){try{const d=await fetch('https://viacep.com.br/ws/'+cep+'/json/').then(r=>r.json());if(!d.erro){city=d.localidade||city;uf=d.uf||'';cityInput.value=city}}catch(e){}}
-    if(!city){show(false,'Informe um CEP ou uma cidade','Digite um dos dois dados para consultar.','');return}
-    const opt=find(city,uf);if(!opt){show(false,'✕ A União Express não atende esta cidade',city+(uf?' / '+uf:'')+' não está na base cadastrada.','');return}
-    show(true,'✓ A União Express atende esta cidade','Destino confirmado: '+city+(uf?' / '+uf:''),'Prazo estimado: '+days(city,uf));
-  };
+  function find(city,uf){
+    const frame=$('app'),doc=frame&&frame.contentDocument;if(!doc)return null;
+    const wanted=norm(city),state=norm(uf);
+    const map={MG:'MINAS GERAIS',SP:'SAO PAULO',RJ:'RIO DE JANEIRO',ES:'ESPIRITO SANTO',SC:'SANTA CATARINA',MT:'MATO GROSSO',MS:'MATO GROSSO DO SUL',PR:'PARANA',RS:'RIO GRANDE DO SUL'};
+    const options=[...doc.querySelectorAll('select option')];
+    for(const o of options){
+      const base=norm((o.textContent||'').split('—')[0].split('•')[0]);
+      if(base!==wanted)continue;
+      if(!state)return o;
+      const group=norm(o.parentElement&&o.parentElement.label||'');
+      if(group===norm(map[state]||state))return o;
+    }
+    return options.find(o=>norm((o.textContent||'').split('—')[0].split('•')[0])===wanted)||null;
+  }
+  async function viaCep(cep){const r=await fetch('https://viacep.com.br/ws/'+cep+'/json/');if(!r.ok)throw Error();const j=await r.json();if(j.erro)throw Error();return j}
+  async function consultar(){
+    const cepEl=$('deliveryCep'),cityEl=$('deliveryCity');let cep=(cepEl?.value||'').replace(/\D/g,''),city=(cityEl?.value||'').trim(),uf='';
+    try{
+      if(cep){if(cep.length!==8){show(false,'CEP inválido','Digite um CEP com 8 números.','');return}const j=await viaCep(cep);city=j.localidade||city;uf=j.uf||'';if(cityEl)cityEl.value=city}
+      if(!city){show(false,'Informe um destino','Digite o CEP ou a cidade que deseja consultar.','');return}
+      const opt=find(city,uf);
+      if(!opt){show(false,'✕ A União Express não atende esta cidade',city+(uf?' - '+uf:'')+' não foi encontrada na base de destinos atendidos.','');return}
+      const prazo=(opt.textContent.match(/—\s*(\d+\s*DIAS?)/i)||[])[1]||'';
+      show(true,'✓ A União Express atende esta cidade','Destino confirmado: '+city+(uf?' - '+uf:'')+'. Prazo conforme a tabela cadastrada para a rota.',prazo?'Prazo estimado: '+prazo.toLowerCase():'Prazo conforme tabela');
+      const select=opt.parentElement;if(select){select.value=opt.value;select.dispatchEvent(new Event('change',{bubbles:true}))}
+    }catch(e){show(false,'Não foi possível consultar','Confira o CEP ou informe a cidade manualmente.','')}
+  }
+  function bind(){const b=$('deliveryConsult');if(!b)return;b.onclick=consultar;const c=$('deliveryCep');if(c&&!c.dataset.v7){c.dataset.v7='1';c.addEventListener('input',()=>{let v=c.value.replace(/\D/g,'').slice(0,8);c.value=v.length>5?v.slice(0,5)+'-'+v.slice(5):v})}}
+  bind();setTimeout(bind,300);setTimeout(bind,1000);setTimeout(bind,2000);
 })();
 </script>
 </body>
