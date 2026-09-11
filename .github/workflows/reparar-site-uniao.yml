@@ -1,0 +1,61 @@
+name: Reparar site União Express
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/reparar-site-uniao.yml'
+permissions:
+  contents: write
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Aplicar reparos
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          p=Path('app.html'); s=p.read_text(encoding='utf-8')
+          s=s.replace("if(['CONTAGEM','BELO HORIZONTE','JOAO PINHEIRO','PARACATU'].includes(c))return[75,.02,1,'standard'];", "if(['CONTAGEM','BELO HORIZONTE'].includes(c))return[75,.02,1,'standard'];if(['JOAO PINHEIRO','PARACATU'].includes(c))return[50,.02,1,'standard'];")
+          s=s.replace('["Nilopolis","1 DIA","Atendimento especial"],["Nilopolis","1 DIA","Atendimento especial"],','["Nilopolis","1 DIA","Atendimento especial"],')
+          fixes={'"SIONOP"':'"SINOP"','"RIBERIÃO DO PINHAL"':'"RIBEIRÃO DO PINHAL"','"Almirante Tamadaré"':'"Almirante Tamandaré"','"Alraucária"':'"Araucária"','"Campinas Grande do Sul"':'"Campina Grande do Sul"','"Pinhas"':'"Pinhais"','"Piraraquara"':'"Piraquara"','"Vargrem Grande Paulista"':'"Vargem Grande Paulista"','"SANTA BARBA DO OESTE"':'"SANTA BÁRBARA D\'OESTE"','"São Joao do Meriti"':'"São João do Meriti"','"CARIACIA"':'"CARIACICA"','"ITAPETINIGA"':'"ITAPETININGA"'}
+          for a,b in fixes.items(): s=s.replace(a,b)
+          pat=r'<script>\s*\(function\(\)\{\s*const head=document\.querySelector\(\x27header \.head\x27\);\s*if\(!head \|\| head\.querySelector\(\x27\.ue-nav\x27\) return;.*?\}\)\(\);\s*</script>'
+          blocks=re.findall(pat,s,re.S)
+          if len(blocks)>1: s=s.replace(blocks[1],'',1)
+          if 'id="ueCalcBtn"' not in s:
+            needle='<a class="ue-nav-item" href="#rastreamento" id="ueTrackBtn" role="button">RASTREAR CARGA</a>'
+            s=s.replace(needle,needle+'<a class="ue-nav-item" href="#calculo" id="ueCalcBtn" role="button">COMO CALCULAMOS</a>',1)
+          if 'OPEN_CALC_MODAL_REPAIR' not in s:
+            extra='''<script>\n/* OPEN_CALC_MODAL_REPAIR */\n(function(){document.addEventListener('click',function(e){var el=e.target.closest&&e.target.closest('#ueCalcBtn');if(!el)return;e.preventDefault();try{if(window.parent&&typeof window.parent.openCalcModal==='function'){window.parent.openCalcModal();return;}}catch(err){}try{if(window.parent&&window.parent!==window)window.parent.postMessage({type:'OPEN_CALC_MODAL'},'*')}catch(err){}},true);})();\n</script>'''
+            s=s.replace('</body>',extra+'\n</body>',1)
+          p.write_text(s,encoding='utf-8')
+
+          p=Path('index.html'); s=p.read_text(encoding='utf-8')
+          new_v7='''<script>\n/* DELIVERY_PREDICTION_V7 */\n(function(){\n  const norm=v=>(v||'').normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').replace(/[^A-Z0-9]+/gi,' ').trim().toUpperCase();\n  const $=id=>document.getElementById(id);\n  function show(ok,title,text,prazo){const box=$('deliveryResult'),t=$('deliveryResultTitle'),tx=$('deliveryResultText'),d=$('deliveryDays');if(!box)return;box.style.setProperty('display','block','important');box.className='delivery-result show '+(ok?'ok':'no');t.textContent=title;tx.textContent=text;d.textContent=prazo||'';d.style.setProperty('display',prazo?'block':'none','important')}\n  function find(city,uf){const frame=$('app'),doc=frame&&frame.contentDocument;if(!doc)return null;const wanted=norm(city),state=norm(uf);const options=[...doc.querySelectorAll('select option')].filter(o=>{const t=norm((o.textContent||'').split('—')[0].split('•')[0]);return t&&t!=='SELECIONE O DESTINO';});const ufMap={MG:'MINAS GERAIS',SP:'SAO PAULO',RJ:'RIO DE JANEIRO',ES:'ESPIRITO SANTO',SC:'SANTA CATARINA',MT:'MATO GROSSO',MS:'MATO GROSSO DO SUL',PR:'PARANA',RS:'RIO GRANDE DO SUL'};const exact=options.find(o=>{const base=norm((o.textContent||'').split('—')[0].split('•')[0]);if(base!==wanted)return false;if(!state)return true;return norm(ufMap[state]||state)===norm(o.parentElement&&o.parentElement.label||'')});return exact||options.find(o=>norm((o.textContent||'').split('—')[0].split('•')[0])===wanted)||null}\n  async function viaCep(cep){const r=await fetch('https://viacep.com.br/ws/'+cep+'/json/');if(!r.ok)throw Error('cep');const j=await r.json();if(j.erro)throw Error('cep');return j}\n  async function consultar(){const cepEl=$('deliveryCep'),cityEl=$('deliveryCity');let cep=(cepEl?.value||'').replace(/\\D/g,''),city=(cityEl?.value||'').trim(),uf='';show(true,'Consultando previsão','Verificando o destino e o prazo cadastrado na tabela...','');try{if(cep){if(cep.length!==8){show(false,'CEP inválido','Digite um CEP com 8 números.','');return}const j=await viaCep(cep);city=j.localidade||city;uf=j.uf||'';if(cityEl)cityEl.value=city}if(!city){show(false,'Informe um destino','Digite o CEP ou a cidade que deseja consultar.','');return}const opt=find(city,uf);if(!opt){show(false,'✕ A União Express não atende esta cidade',city+(uf?' - '+uf:'')+' não foi encontrada na base de destinos atendidos.','');return}const raw=opt.textContent||'';const prazo=(raw.match(/—\\s*(\\d+\\s*DIAS?)/i)||[])[1]||'';show(true,'✓ A União Express atende esta cidade','Destino confirmado: '+city+(uf?' - '+uf:'')+'. Prazo conforme a tabela cadastrada para a rota.',prazo?'Prazo estimado: '+prazo.toLowerCase():'Prazo conforme tabela');const select=opt.parentElement;if(select){select.value=opt.value;select.dispatchEvent(new Event('change',{bubbles:true}))}}catch(e){show(false,'Não foi possível consultar','Confira o CEP ou informe a cidade manualmente.','')}}\n  function bind(){const b=$('deliveryConsult');if(!b)return;b.onclick=consultar;b.dataset.v7='1';const c=$('deliveryCep');if(c&&!c.dataset.v7){c.dataset.v7='1';c.addEventListener('input',()=>{let v=c.value.replace(/\\D/g,'').slice(0,8);c.value=v.length>5?v.slice(0,5)+'-'+v.slice(5):v})}}\n  bind();setTimeout(bind,300);setTimeout(bind,1000);setTimeout(bind,2000);\n})();\n</script>'''
+          s=re.sub(r'<script>\s*/\* DELIVERY_PREDICTION_V6 \*/.*?</script>',new_v7,s,count=1,flags=re.S)
+          if 'DELIVERY_PREDICTION_V7' not in s: s=s.replace('</body>',new_v7+'\n</body>',1)
+          if 'window.openCalcModal' not in s:
+            needle="const modal=document.getElementById('calcModal');"
+            repl="window.openCalcModal=()=>{const m=document.getElementById('calcModal');m.classList.add('show');m.setAttribute('aria-hidden','false')};window.closeCalcModal=()=>{const m=document.getElementById('calcModal');m.classList.remove('show');m.setAttribute('aria-hidden','true')};const modal=document.getElementById('calcModal');"
+            s=s.replace(needle,repl,1)
+          p.write_text(s,encoding='utf-8')
+          PY
+      - name: Validar reparos
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          a=Path('app.html').read_text(encoding='utf-8'); i=Path('index.html').read_text(encoding='utf-8')
+          checks=[('tarifa JP/Paracatu', "['JOAO PINHEIRO','PARACATU'].includes(c))return[50,.02,1,'standard'];" in a),('prazo V7','DELIVERY_PREDICTION_V7' in i),('Como calculamos','id="ueCalcBtn"' in a and 'window.openCalcModal' in i),('Nilopolis duplicado removido',a.count('["Nilopolis","1 DIA","Atendimento especial"]')==1)]
+          bad=[name for name,ok in checks if not ok]
+          if bad: raise SystemExit('Falhas: '+', '.join(bad))
+          PY
+      - name: Commitar e limpar workflow
+        run: |
+          rm -f .github/workflows/reparar-site-uniao.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add app.html index.html .github/workflows/reparar-site-uniao.yml
+          git commit -m 'Corrigir regras e previsão de entrega da União Express'
+          git push
