@@ -90,6 +90,85 @@ function clearForm(){dest.value='';document.getElementById('nf').value='';docume
 const counts={};D.forEach(d=>counts[d.state]=(counts[d.state]||0)+1);document.getElementById('states').innerHTML=Object.entries(counts).map(([s,n])=>'<div class="state"><b>'+s+'</b><span>'+n+' destinos • '+U[s]+'</span></div>').join('');
 function render(q=''){let f=norm(q),rows=D.filter(d=>!f||norm(d.city).includes(f)||norm(d.state).includes(f));document.getElementById('body').innerHTML=rows.map(d=>{let[min,pct]=params(d);return'<tr><td><b>'+d.city+'</b>'+(d.note?' <small style="color:#9a6b00">• especial</small>':'')+'</td><td>'+U[d.state]+' · '+d.state+'</td><td>'+d.prazo+'</td><td>'+money(min)+'</td><td>'+String((pct*100).toFixed(1)).replace('.',',')+'%</td></tr>'}).join('')}render();document.getElementById('cep').addEventListener('input',e=>{let v=e.target.value.replace(/\D/g,'').slice(0,8);e.target.value=v.length>5?v.slice(0,5)+'-'+v.slice(5):v});
 const nfInput=document.getElementById('nf');if(nfInput){nfInput.addEventListener('input',e=>{let v=e.target.value.replace(/[^0-9,.-]/g,'');v=v.replace(/(?!^)-/g,'');e.target.value=v});nfInput.addEventListener('blur',e=>{const n=parse(e.target.value);if(n>0)e.target.value=n.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})})}</script><script>
+/* CEP_CNPJ_AUTO_V1 */
+(function(){
+  const cepEl=document.getElementById('cep');
+  const nfEl=document.getElementById('nf');
+  const kgEl=document.getElementById('kg');
+  const destEl=document.getElementById('dest');
+  if(!cepEl||!destEl)return;
+  const status=document.createElement('div');
+  status.id='cepStatus';
+  status.style='margin-top:6px;font-size:11px;line-height:1.45;font-weight:800;color:#64758b';
+  cepEl.parentElement.appendChild(status);
+  let lastCep='';
+  function findCity(name,uf){
+    const city=norm(name), state=Object.keys(U).find(s=>U[s]===String(uf||'').toUpperCase());
+    if(!state)return null;
+    return D.find(d=>d.state===state&&norm(d.city).replace(/[^A-Z0-9]/g,'').includes(city.replace(/[^A-Z0-9]/g,'')))||null;
+  }
+  async function lookupCep(){
+    const cep=cepEl.value.replace(/\D/g,'');
+    if(cep.length!==8){status.textContent='';return}
+    if(cep===lastCep)return;
+    lastCep=cep;
+    status.textContent='Consultando CEP...';
+    try{
+      const r=await fetch('https://viacep.com.br/ws/'+cep+'/json/');
+      const data=await r.json();
+      if(data.erro)throw new Error('CEP não encontrado');
+      const d=findCity(data.localidade,data.uf);
+      const address=[data.logradouro,data.bairro,data.localidade+' - '+data.uf].filter(Boolean).join(', ');
+      if(d){
+        const idx=D.indexOf(d);
+        destEl.value=String(idx);
+        status.innerHTML='✓ CEP localizado: <b>'+address+'</b><br>✓ A União atende <b>'+d.city+' / '+data.uf+'</b>.';
+      }else{
+        destEl.value='';
+        status.innerHTML='✓ CEP localizado: <b>'+address+'</b><br><span style="color:#a33">✕ A União não possui '+data.localidade+' / '+data.uf+' na tabela de cidades atendidas.</span>';
+      }
+    }catch(e){
+      status.textContent='Não foi possível consultar este CEP. Verifique o número e tente novamente.';
+      lastCep='';
+    }
+  }
+  cepEl.addEventListener('blur',lookupCep);
+  cepEl.addEventListener('input',()=>{lastCep='';status.textContent='';});
+  const cnpj=document.createElement('div');
+  cnpj.className='field';
+  cnpj.innerHTML='<label for="cnpj">CNPJ do cliente</label><input id="cnpj" inputmode="numeric" maxlength="18" placeholder="00.000.000/0000-00"><div id="cnpjStatus" style="margin-top:6px;font-size:11px;line-height:1.45;font-weight:800;color:#64758b"></div>';
+  const fg=document.querySelector('.fg');
+  const originField=[...fg.querySelectorAll('.field')].find(x=>x.querySelector('input[readonly]'));
+  const cepField=cepEl.parentElement;
+  const nfField=nfEl.parentElement;
+  if(originField){originField.innerHTML='<label>Origem</label><input id="originAuto" value="Uberaba - MG" readonly><div style="margin-top:6px;font-size:11px;color:#64758b">Origem fixa da operação</div>';}
+  fg.insertBefore(cnpj,originField?.nextSibling||cepField);
+  const origin=document.getElementById('originAuto');
+  const cnpjEl=document.getElementById('cnpj'), cnpjStatus=document.getElementById('cnpjStatus');
+  cnpjEl.addEventListener('input',e=>{let v=e.target.value.replace(/\D/g,'').slice(0,14);e.target.value=v.length>12?v.slice(0,2)+'.'+v.slice(2,5)+'.'+v.slice(5,8)+'/'+v.slice(8,12)+'-'+v.slice(12):v;});
+  async function lookupCnpj(){
+    const c=cnpjEl.value.replace(/\D/g,'');
+    if(c.length!==14){cnpjStatus.textContent='';return}
+    cnpjStatus.textContent='Consultando CNPJ na BrasilAPI...';
+    try{
+      const r=await fetch('https://brasilapi.com.br/api/cnpj/v1/'+c);
+      if(!r.ok)throw new Error('CNPJ não encontrado');
+      const data=await r.json();
+      const address=[data.logradouro,data.numero,data.bairro,data.municipio+' - '+data.uf,data.cep].filter(Boolean).join(', ');
+      if(origin)origin.value=(data.municipio&&data.uf)?data.municipio+' - '+data.uf:'Empresa localizada';
+      if(data.cep){
+        cepEl.value=data.cep.replace(/\D/g,'').replace(/^(\d{5})(\d{3})$/,'$1-$2');
+        lastCep='';
+        await lookupCep();
+      }
+      cnpjStatus.innerHTML='✓ <b>'+ (data.razao_social||data.nome_fantasia||'Empresa localizada') +'</b><br>'+address;
+    }catch(e){
+      cnpjStatus.textContent='Não foi possível localizar este CNPJ. Verifique o número e tente novamente.';
+    }
+  }
+  cnpjEl.addEventListener('blur',lookupCnpj);
+})();
+</script><script>
 (function(){
   const head=document.querySelector('header .head');
   if(!head || head.querySelector('.ue-nav')) return;
