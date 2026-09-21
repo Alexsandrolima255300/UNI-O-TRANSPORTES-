@@ -151,11 +151,11 @@ tbody tr:hover td{background:#fbfdff}
   .top{padding-bottom:18px}.top h1{font-size:24px}
 }
 
-.ue-chart-section{margin-top:19px}.ue-range{border:1px solid #d8e2ec;border-radius:8px;padding:3px;background:#fff}.ue-range button{border:0;background:transparent;color:#71839a;border-radius:5px;padding:6px 10px;font-size:11px;font-weight:800;cursor:pointer}.ue-range button[aria-pressed="true"]{background:#eef6fc;color:#0878c9}.ue-chart-wrap{height:280px;margin-top:8px}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}html.auth-pending{visibility:hidden}
+.ue-chart-section{margin-top:19px}.ue-range{border:1px solid #d8e2ec;border-radius:8px;padding:3px;background:#fff}.ue-range button{border:0;background:transparent;color:#71839a;border-radius:5px;padding:6px 10px;font-size:11px;font-weight:800;cursor:pointer}.ue-range button[aria-pressed="true"]{background:#eef6fc;color:#0878c9}.ue-chart-wrap{height:280px;margin-top:8px}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}body.auth-pending{visibility:hidden}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script><script>
 const SUPABASE_URL='https://rejyergahvzabyerhjhy.supabase.co',SUPABASE_PUBLISHABLE_KEY='sb_publishable_A5oVTI7f-c-M1260_Mq1oA_Y2s0J6E8';const supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
-(async()=>{try{const {data:{user}}=await supabaseClient.auth.getUser();if(!user){location.replace('index.html');return}const {data:profile,error}=await supabaseClient.from('profiles').select('role,full_name,active').eq('id',user.id).single();if(error||!profile||profile.role!=='admin'||profile.active===false){await supabaseClient.auth.signOut();location.replace('index.html');return}window.UE_CURRENT_USER={...user,profile};document.documentElement.classList.remove('auth-pending')}catch(e){location.replace('index.html')}})();
+(async()=>{try{const {data:{user}}=await supabaseClient.auth.getUser();if(!user){location.replace('index.html');return}const {data:profile,error}=await supabaseClient.from('profiles').select('role,full_name,active').eq('id',user.id).single();if(error||!profile||profile.role!=='admin'||profile.active===false){await supabaseClient.auth.signOut();location.replace('index.html');return}window.UE_CURRENT_USER={...user,profile};document.body.classList.remove('auth-pending')}catch(e){location.replace('index.html')}})();
 </script></head>
 <body class="auth-pending">
 <div class="admin">
