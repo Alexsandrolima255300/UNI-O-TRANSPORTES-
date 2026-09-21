@@ -115,7 +115,7 @@ tbody tr:hover td{background:#fbfdff}
   .top{padding-bottom:18px}.top h1{font-size:24px}
 }
 
-</style>
+.ue-chart-section{margin-top:19px}.ue-range{border:1px solid #d8e2ec;border-radius:8px;padding:3px;background:#fff}.ue-range button{border:0;background:transparent;color:#71839a;border-radius:5px;padding:6px 10px;font-size:11px;font-weight:800;cursor:pointer}.ue-range button[aria-pressed="true"]{background:#eef6fc;color:#0878c9}.ue-chart-wrap{height:280px;margin-top:8px}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}</style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script><script>
 const SUPABASE_URL='https://rejyergahvzabyerhjhy.supabase.co',SUPABASE_PUBLISHABLE_KEY='sb_publishable_A5oVTI7f-c-M1260_Mq1oA_Y2s0J6E8';const supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
 (async()=>{const {data:{user}}=await supabaseClient.auth.getUser();if(!user){location.replace('index.html');return}const {data:profile}=await supabaseClient.from('profiles').select('role,full_name').eq('id',user.id).single();if(!profile||profile.role!=='admin'){location.replace('index.html');return}window.UE_CURRENT_USER={...user,profile}})();
@@ -136,7 +136,7 @@ const SUPABASE_URL='https://rejyergahvzabyerhjhy.supabase.co',SUPABASE_PUBLISHAB
 <main class="main">
 <div class="top"><div><h1 id="pageTitle">Dashboard</h1><p>Gerencie clientes, usuários e tabelas do sistema União Express.</p></div><span class="badge">ADMINISTRADOR</span></div>
 
-<section class="page active" id="dashboard">
+<section class="page active" id="dashboard"><section class="section ue-chart-section"><div class="section-head"><div><h2>Cotações realizadas</h2><p style="margin:6px 0 0;color:var(--muted);font-size:12px">Quantidade de cotações por período.</p></div><div class="inline-flex ue-range"><button type="button" data-quote-range="6m" aria-pressed="true">6M</button><button type="button" data-quote-range="12m" aria-pressed="false">12M</button></div></div><div class="ue-chart-wrap"><canvas id="quote-line-chart" role="img" aria-label="Quantidade de cotações por mês"></canvas></div><table class="sr-only" id="quote-line-chart-table"><caption>Quantidade de cotações por mês</caption><thead><tr><th>Mês</th><th>Cotações</th></tr></thead><tbody></tbody></table></section>
 <div class="cards"><div class="card"><small>Empresas cadastradas</small><div class="number" id="countEmpresas">0</div></div><div class="card"><small>Usuários cadastrados</small><div class="number" id="countUsuarios">0</div></div><div class="card"><small>Tabelas de frete</small><div class="number" id="countTabelas">0</div></div><div class="card"><small>Status do sistema</small><div class="number" style="font-size:18px;color:#21834b">ONLINE</div></div></div>
 <div class="section"><div class="section-head"><h2>Ações rápidas</h2></div><div class="quick"><button data-open="empresa"><b>+ Nova empresa</b><span>Cadastre uma nova empresa cliente.</span></button><button data-open="usuario"><b>+ Novo usuário</b><span>Crie um acesso vinculado a uma empresa.</span></button><button data-open="tabela"><b>+ Nova tabela</b><span>Cadastre uma tabela de frete por cliente.</span></button></div></div>
 <div class="section"><div class="section-head"><h2>Arquitetura administrativa</h2></div><div class="notice">Esta tela foi adicionada separadamente da cotação. A área do cliente continua em <b>app.html</b>. Os próximos passos podem conectar estes cadastros a um banco de dados para que alterações feitas aqui reflitam de forma permanente em cada usuário.</div></div>
@@ -209,4 +209,18 @@ function bindClientActions(){document.querySelectorAll('.ue-edit-client').forEac
 document.querySelectorAll('[data-open]').forEach(b=>b.onclick=e=>{e.preventDefault();overrideModal();openModal(b.dataset.open)});
 bindClientActions();document.addEventListener('click',e=>{const edit=e.target.closest('.ue-edit-client'),view=e.target.closest('.ue-view-client');if(edit){editCompany(edit.dataset.id)}else if(view){viewCompany(view.dataset.id)}});['searchEmpresa','searchUsuario','searchTabela'].forEach(id=>q(id)?.addEventListener('input',render));
 (async()=>{try{await load()}catch(e){console.error(e)}})();
-})();</script></body></html>
+})();</script><script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js"></script><script>
+(function(){
+let quoteChart;
+const ranges={};
+function buildRanges(){
+ const now=new Date(), months6=[],months12=[],counts6=[],counts12=[];
+ for(let i=11;i>=0;i--){const d=new Date(now.getFullYear(),now.getMonth()-i,1);const key=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');const label=d.toLocaleDateString('pt-BR',{month:'short'}).replace('.','');months12.push(label.charAt(0).toUpperCase()+label.slice(1));counts12.push(Number(localStorage.getItem('uniao_quotes_'+key)||0));if(i<6){months6.push(label.charAt(0).toUpperCase()+label.slice(1));counts6.push(Number(localStorage.getItem('uniao_quotes_'+key)||0))}}
+ ranges['6m']={labels:months6,values:counts6};ranges['12m']={labels:months12,values:counts12};
+}
+function renderQuoteChart(range){buildRanges();const c=document.getElementById('quote-line-chart');if(!c)return;const ctx=c.getContext('2d');const g=ctx.createLinearGradient(0,0,0,280);g.addColorStop(0,'rgba(8,120,201,.22)');g.addColorStop(1,'rgba(8,120,201,0)');if(quoteChart)quoteChart.destroy();quoteChart=new Chart(ctx,{type:'line',data:{labels:ranges[range].labels,datasets:[{label:'Cotações',data:ranges[range].values,borderColor:'#0878c9',backgroundColor:g,borderWidth:2,pointRadius:2,pointHoverRadius:5,tension:.35,fill:true}]},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{display:false},tooltip:{callbacks:{label:i=>' '+i.formattedValue+' cotações'}}},scales:{x:{grid:{display:false},ticks:{color:'#71839a'}},y:{beginAtZero:true,precision:0,grid:{color:'rgba(20,55,85,.08)'},ticks:{color:'#71839a',stepSize:1}}}}});const tb=document.querySelector('#quote-line-chart-table tbody');if(tb)tb.innerHTML=ranges[range].labels.map((x,i)=>'<tr><td>'+x+'</td><td>'+ranges[range].values[i]+'</td></tr>').join('')}
+document.querySelectorAll('[data-quote-range]').forEach(b=>b.onclick=()=>{document.querySelectorAll('[data-quote-range]').forEach(x=>{const on=x===b;x.setAttribute('aria-pressed',String(on))});renderQuoteChart(b.dataset.quoteRange)});
+window.UERefreshQuoteChart=()=>{const active=document.querySelector('[data-quote-range][aria-pressed="true"]');renderQuoteChart(active?.dataset.quoteRange||'6m')};
+document.addEventListener('DOMContentLoaded',()=>renderQuoteChart('6m'));
+})();
+</script></body></html>
