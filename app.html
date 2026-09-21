@@ -153,7 +153,86 @@ tbody tr:hover td{background:#f9fcff}
  .total{font-size:32px}
 }
 </style>
-</head><body><header><div class="head"><img class="logo" alt="União Express Uberaba" src="logo-uniao-express.jpeg"><nav class="ue-nav" aria-label="Menu principal"><a class="ue-nav-item" href="#cotacao">COTAÇÃO</a><a class="ue-nav-item" href="#previsao" id="ueDeliveryBtn" role="button">PREVISÃO DE ENTREGA</a><a class="ue-nav-item" href="#rastreamento" id="ueTrackBtn" role="button">RASTREAR CARGA</a><a class="ue-nav-item" href="#calculo" id="ueCalcBtn" role="button">COMO CALCULAMOS</a><a class="ue-nav-item" href="#coleta" id="ueColetaBtn" role="button">COLETA</a></nav><button class="ue-account" id="ueAccountAction" type="button" aria-label="Acessar minha conta"><span class="ue-login-icon">👤</span><span>ACESSAR MINHA CONTA</span></button><div class="brand">COTAÇÃO DE FRETE<br><b>UNIÃO EXPRESS • UBERABA</b></div></div></header><main><section class="hero"><div><div class="ey">Sistema de cotação</div><h1>Calcule seu frete em poucos segundos.</h1><p>Calculadora baseada na planilha fornecida da União Express Uberaba, com destinos, prazos e regras de cobrança.</p></div><div class="heroCard"><div><b>Base cadastrada</b><div class="big">227 destinos</div><span style="color:#64758b;font-size:12px">Cálculo automático por valor da NF, peso, pedágio e taxas da tabela.</span></div></div></section><section class="grid"><div class="card"><h2>Nova cotação</h2><p class="sub">Informe o destino, o valor da NF e o peso.</p><div class="fg"><div class="field"><label>Origem</label><input value="Uberaba - MG" readonly></div><div class="field"><label>Destino</label><select id="dest"></select></div><div class="field"><label for="cep">CEP de destino</label><input id="cep" inputmode="numeric" maxlength="9" placeholder="00000-000"></div><div class="field"><label>Valor da nota fiscal (R$)</label><input id="nf" inputmode="decimal" placeholder="Ex.: 3500,00"></div><div class="field"><label>Peso da carga (kg)</label><input id="kg" inputmode="decimal" placeholder="Ex.: 80"></div></div><div class="actions"><button class="primary" onclick="calc()">Calcular cotação</button><button class="ghost" onclick="clearForm()">Limpar</button><button class="ghost" onclick="printQ()">Imprimir</button><button id="newQuoteBtn" class="ghost" type="button" onclick="newQuote()">Nova cotação</button></div><div id="res" class="result"><div class="rh"><div><div class="muted">Frete estimado</div><div id="total" class="total">R$ 0,00</div></div><div><div class="muted">Prazo de entrega</div><b id="prazo">—</b></div></div><div class="chips"><span id="route" class="chip">—</span><span id="policy" class="chip">—</span></div><div class="bd"><div class="line"><span>Frete por valor / mínimo</span><b id="fv"></b></div><div class="line"><span>Excedente de peso</span><b id="fp"></b></div><div class="line"><span>Despacho</span><b id="dp"></b></div><div class="line"><span>Pedágio</span><b id="pd"></b></div><div class="line"><span>CAT</span><b id="cat"></b></div><div class="line"><span>GRIS (0,15%)</span><b id="gris"></b></div></div><div id="note" class="alert"></div></div></div><aside class="card"><h2>Regras da tabela</h2><p class="sub">Condições gerais identificadas na planilha.</p><div class="rules"><div class="rule"><b>Excesso de peso</b><span>Acima de 50 kg, cobrança por kg excedente. Tarifa de R$ 0,70 a R$ 1,30/kg conforme destino.</span></div><div class="rule"><b>GRIS</b><span>0,15% sobre o valor da NF.</span></div><div class="rule"><b>Despacho</b><span>R$ 2,00 por CT-e na planilha automática.</span></div><div class="rule"><b>CAT</b><span>R$ 4,00 por CT-e na planilha automática.</span></div><div class="rule"><b>Pedágio</b><span>R$ 6,00 por fração de 100 kg. No Paraná: R$ 6,00 até 100,1 kg e R$ 12,00 acima.</span></div><div class="rule"><b>Cubagem</b><span>Referência: 300 kg por m³.</span></div><div class="rule"><b>Condições adicionais</b><span>TDE conforme negociação; reentrega igual à taxa de entrega; devolução = 100% do frete original; ICMS conforme legislação.</span></div><div class="rule"><b>Restrição</b><span>Mercadorias classificadas como perigosas não são transportadas, conforme a planilha.</span></div><div class="rule"><b>Coleta</b><span>R$ 15,00 nas cidades de São Paulo e Rio de Janeiro. Não entra no cálculo automático desta página.</span></div></div></aside></section><section class="card" style="margin-top:20px"><h2>Cidades atendidas</h2><p class="sub">Consulte os destinos cadastrados.</p><div id="states" class="stateGrid"></div><input id="search" placeholder="Pesquisar cidade ou estado..." oninput="render(this.value)"><div class="tableWrap"><table><thead><tr><th>Cidade</th><th>UF / Região</th><th>Prazo</th><th>Frete mínimo</th><th>Percentual</th></tr></thead><tbody id="body"></tbody></table></div></section></main><footer class="ue-footer">
+<style>
+/* ===== UI REFINEMENT — CORPORATE / LOGISTICS ===== */
+:root{
+  --corp-blue:#006fba;
+  --corp-blue-dark:#005b98;
+  --corp-ink:#17324d;
+  --corp-muted:#64778b;
+  --corp-border:#dce4eb;
+  --corp-bg:#f5f7f9;
+}
+body{background:var(--corp-bg)!important;color:var(--corp-ink)!important;font-family:Inter,Arial,Helvetica,sans-serif!important}
+header{background:#fff!important;border-bottom:1px solid #dfe6ed!important;box-shadow:0 1px 7px rgba(20,45,70,.08)!important}
+header .head{max-width:1280px!important;min-height:94px!important;padding:0 24px!important}
+header .logo{width:330px!important;height:82px!important;filter:none!important}
+.ue-nav{gap:25px!important}
+.ue-nav-item{color:#40566b!important;font-size:11px!important;font-weight:750!important;letter-spacing:.035em!important}
+.ue-nav-item:hover,.ue-nav-item.active{color:var(--corp-blue)!important;transform:none!important}
+.ue-nav-separator{background:#d9e1e8!important;height:22px!important}
+.ue-account{background:var(--corp-blue)!important;color:#fff!important;border:1px solid var(--corp-blue)!important;border-radius:5px!important;padding:10px 14px!important;box-shadow:none!important;font-size:11px!important}
+.ue-account:hover{background:var(--corp-blue-dark)!important;transform:none!important;box-shadow:none!important}
+main{max-width:1120px!important;padding:34px 20px 55px!important}
+.hero{display:block!important;margin:0 0 22px!important;padding:0 0 24px!important;border-bottom:1px solid #e0e6ec}
+.ey{color:var(--corp-blue)!important;font-size:10px!important;letter-spacing:.11em!important;font-weight:800!important}
+.hero h1{font-size:36px!important;line-height:1.12!important;letter-spacing:-.025em!important;margin:7px 0 9px!important;color:#17324d!important}
+.hero p{font-size:14px!important;line-height:1.55!important;color:#6b7d8e!important;margin:0!important;max-width:760px!important}
+.grid{display:block!important}
+.card{border:1px solid var(--corp-border)!important;border-radius:7px!important;box-shadow:0 2px 9px rgba(30,55,80,.045)!important;background:#fff!important;padding:24px!important}
+.grid>.card:first-child:before{display:none!important}
+.card h2{font-size:18px!important;font-weight:800!important;color:#17324d!important}
+.sub{font-size:12px!important;color:#738496!important;margin-bottom:18px!important}
+.fg{gap:13px!important}
+.field label{font-size:11px!important;font-weight:750!important;color:#40566b!important}
+input,select{min-height:44px!important;border:1px solid #cfd9e2!important;border-radius:5px!important;box-shadow:none!important;background:#fff!important}
+input:hover,select:hover{border-color:#aebdca!important}
+input:focus,select:focus{border-color:var(--corp-blue)!important;box-shadow:0 0 0 2px rgba(0,111,186,.10)!important}
+.actions{margin-top:18px!important;gap:8px!important}
+.actions button{border-radius:5px!important;box-shadow:none!important;padding:11px 15px!important;font-size:12px!important}
+.actions button:hover{transform:none!important}
+.actions .primary{background:var(--corp-blue)!important}
+.actions .primary:hover{background:var(--corp-blue-dark)!important}
+.actions .ghost{background:#fff!important;color:#31546f!important;border:1px solid #cbd7e1!important}
+.actions .ghost:hover{background:#f5f8fa!important;border-color:#b6c5d1!important}
+.result{border-radius:6px!important;background:#f7fafc!important;border:1px solid #d7e2ea!important;padding:18px!important}
+.total{font-size:31px!important;color:#075f9e!important}
+.chip{border-radius:4px!important;background:#fff!important;border:1px solid #d6e0e7!important;box-shadow:none!important;padding:6px 8px!important}
+.line{border-bottom:1px solid #e5ebf0!important;padding:8px 0!important}
+.alert{border-radius:5px!important;background:#fffaf0!important;border-color:#ead9b4!important}
+.grid>.card:nth-child(2){display:none!important}
+#citiesToggle{border-radius:5px!important;background:#fff!important;border:1px solid #ccd8e2!important;color:#31546f!important}
+.stateGrid{gap:8px!important}
+.state{border-radius:5px!important;background:#fff!important;border:1px solid #dce4eb!important}
+.tableWrap{border-radius:5px!important;box-shadow:none!important}
+th{background:#f1f4f7!important;color:#52687b!important;font-size:9px!important;font-weight:800!important}
+td{font-size:11px!important}
+tbody tr:hover td{background:#f8fafb!important}
+.ue-footer{background:#fff!important;color:#617487!important;border-top:1px solid #dce4eb!important;padding:25px 20px 15px!important}
+.ue-footer-brand{color:#17324d!important}
+.ue-footer-info a{color:var(--corp-blue)!important}
+.ue-footer-copy{border-top-color:#e1e7ec!important}
+@media(max-width:1050px){
+ header .head{min-height:88px!important}
+ header .logo{width:270px!important;height:72px!important}
+ .ue-nav{gap:16px!important}
+}
+@media(max-width:800px){
+ header .head{min-height:82px!important}
+ header .logo{width:230px!important;height:62px!important}
+ .ue-nav{max-width:calc(100vw - 120px)!important}
+}
+@media(max-width:600px){
+ header .head{padding:7px 10px!important}
+ header .logo{width:210px!important;height:60px!important}
+ .ue-nav{gap:16px!important}
+ .ue-nav-item{font-size:9px!important}
+ .ue-account{padding:8px 10px!important}
+ main{padding:24px 10px 40px!important}
+ .hero h1{font-size:30px!important}
+ .card{padding:18px!important}
+}
+</style></head><body><header><div class="head"><img class="logo" alt="União Express Uberaba" src="logo-uniao-express.jpeg"><nav class="ue-nav" aria-label="Menu principal"><a class="ue-nav-item" href="#cotacao">COTAÇÃO</a><a class="ue-nav-item" href="#previsao" id="ueDeliveryBtn" role="button">PREVISÃO DE ENTREGA</a><a class="ue-nav-item" href="#rastreamento" id="ueTrackBtn" role="button">RASTREAR CARGA</a><a class="ue-nav-item" href="#calculo" id="ueCalcBtn" role="button">COMO CALCULAMOS</a><a class="ue-nav-item" href="#coleta" id="ueColetaBtn" role="button">COLETA</a></nav><button class="ue-account" id="ueAccountAction" type="button" aria-label="Acessar minha conta"><span class="ue-login-icon">👤</span><span>ACESSAR MINHA CONTA</span></button><div class="brand">COTAÇÃO DE FRETE<br><b>UNIÃO EXPRESS • UBERABA</b></div></div></header><main><section class="hero"><div><div class="ey">Sistema de cotação</div><h1>Calcule seu frete em poucos segundos.</h1><p>Calculadora baseada na planilha fornecida da União Express Uberaba, com destinos, prazos e regras de cobrança.</p></div><div class="heroCard"><div><b>Base cadastrada</b><div class="big">227 destinos</div><span style="color:#64758b;font-size:12px">Cálculo automático por valor da NF, peso, pedágio e taxas da tabela.</span></div></div></section><section class="grid"><div class="card"><h2>Nova cotação</h2><p class="sub">Informe o destino, o valor da NF e o peso.</p><div class="fg"><div class="field"><label>Origem</label><input value="Uberaba - MG" readonly></div><div class="field"><label>Destino</label><select id="dest"></select></div><div class="field"><label for="cep">CEP de destino</label><input id="cep" inputmode="numeric" maxlength="9" placeholder="00000-000"></div><div class="field"><label>Valor da nota fiscal (R$)</label><input id="nf" inputmode="decimal" placeholder="Ex.: 3500,00"></div><div class="field"><label>Peso da carga (kg)</label><input id="kg" inputmode="decimal" placeholder="Ex.: 80"></div></div><div class="actions"><button class="primary" onclick="calc()">Calcular cotação</button><button class="ghost" onclick="clearForm()">Limpar</button><button class="ghost" onclick="printQ()">Imprimir</button><button id="newQuoteBtn" class="ghost" type="button" onclick="newQuote()">Nova cotação</button></div><div id="res" class="result"><div class="rh"><div><div class="muted">Frete estimado</div><div id="total" class="total">R$ 0,00</div></div><div><div class="muted">Prazo de entrega</div><b id="prazo">—</b></div></div><div class="chips"><span id="route" class="chip">—</span><span id="policy" class="chip">—</span></div><div class="bd"><div class="line"><span>Frete por valor / mínimo</span><b id="fv"></b></div><div class="line"><span>Excedente de peso</span><b id="fp"></b></div><div class="line"><span>Despacho</span><b id="dp"></b></div><div class="line"><span>Pedágio</span><b id="pd"></b></div><div class="line"><span>CAT</span><b id="cat"></b></div><div class="line"><span>GRIS (0,15%)</span><b id="gris"></b></div></div><div id="note" class="alert"></div></div></div><aside class="card"><h2>Regras da tabela</h2><p class="sub">Condições gerais identificadas na planilha.</p><div class="rules"><div class="rule"><b>Excesso de peso</b><span>Acima de 50 kg, cobrança por kg excedente. Tarifa de R$ 0,70 a R$ 1,30/kg conforme destino.</span></div><div class="rule"><b>GRIS</b><span>0,15% sobre o valor da NF.</span></div><div class="rule"><b>Despacho</b><span>R$ 2,00 por CT-e na planilha automática.</span></div><div class="rule"><b>CAT</b><span>R$ 4,00 por CT-e na planilha automática.</span></div><div class="rule"><b>Pedágio</b><span>R$ 6,00 por fração de 100 kg. No Paraná: R$ 6,00 até 100,1 kg e R$ 12,00 acima.</span></div><div class="rule"><b>Cubagem</b><span>Referência: 300 kg por m³.</span></div><div class="rule"><b>Condições adicionais</b><span>TDE conforme negociação; reentrega igual à taxa de entrega; devolução = 100% do frete original; ICMS conforme legislação.</span></div><div class="rule"><b>Restrição</b><span>Mercadorias classificadas como perigosas não são transportadas, conforme a planilha.</span></div><div class="rule"><b>Coleta</b><span>R$ 15,00 nas cidades de São Paulo e Rio de Janeiro. Não entra no cálculo automático desta página.</span></div></div></aside></section><section class="card" style="margin-top:20px"><h2>Cidades atendidas</h2><p class="sub">Consulte os destinos cadastrados.</p><div id="states" class="stateGrid"></div><input id="search" placeholder="Pesquisar cidade ou estado..." oninput="render(this.value)"><div class="tableWrap"><table><thead><tr><th>Cidade</th><th>UF / Região</th><th>Prazo</th><th>Frete mínimo</th><th>Percentual</th></tr></thead><tbody id="body"></tbody></table></div></section></main><footer class="ue-footer">
   <div class="ue-footer-inner">
     <div class="ue-footer-brand"><b>União Express (Encomendas)</b><span>Serviço de transporte em Uberaba, Minas Gerais</span></div>
     <div class="ue-footer-info"><span>Praça Dr. Carlos Terra, 291 - Lj 02 - São Benedito, Uberaba - MG, 38020-390</span><span>(34) 3314-8566</span><a href="https://www.uniaoexpress.com.br/" target="_blank" rel="noopener noreferrer">www.uniaoexpress.com.br</a></div>
