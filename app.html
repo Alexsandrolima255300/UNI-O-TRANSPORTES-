@@ -311,6 +311,144 @@ tbody tr:hover td{background:#f8fafb!important}
   .ue-quote-value-card>div:last-child{min-width:105px;padding-left:12px}
   .ue-quote-value-card>div:last-child b{font-size:12px}
 }
+</style><style id="UE_STANDARD_HEADER_V2">
+/* Cabeçalho padrão — estrutura visual inspirada no modelo solicitado */
+header{
+  background:#fff!important;
+  padding:0!important;
+  border-bottom:1px solid #e5e7eb!important;
+  box-shadow:0 1px 3px rgba(15,23,42,.06)!important;
+  position:relative!important;
+  z-index:1000!important;
+}
+header .head{
+  width:100%!important;
+  max-width:1280px!important;
+  min-height:64px!important;
+  height:64px!important;
+  margin:0 auto!important;
+  padding:0 24px!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+  gap:24px!important;
+}
+header .logo{
+  width:190px!important;
+  height:52px!important;
+  object-fit:contain!important;
+  border-radius:0!important;
+  filter:none!important;
+  flex:0 0 auto!important;
+}
+.ue-nav{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:flex-end!important;
+  gap:24px!important;
+  margin-left:auto!important;
+  white-space:nowrap!important;
+}
+.ue-nav-item{
+  color:#64748b!important;
+  font-size:12px!important;
+  font-weight:600!important;
+  letter-spacing:0!important;
+  text-decoration:none!important;
+  cursor:pointer!important;
+  transition:color .18s ease!important;
+  transform:none!important;
+}
+.ue-nav-item:hover,
+.ue-nav-item.active{
+  color:#006fba!important;
+  transform:none!important;
+}
+.ue-nav-separator{
+  width:1px!important;
+  height:24px!important;
+  background:#e5e7eb!important;
+  display:block!important;
+}
+.ue-account{
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:7px!important;
+  min-height:40px!important;
+  padding:9px 18px!important;
+  border-radius:6px!important;
+  border:0!important;
+  background:#006fba!important;
+  color:#fff!important;
+  font-size:12px!important;
+  font-weight:700!important;
+  letter-spacing:0!important;
+  text-decoration:none!important;
+  cursor:pointer!important;
+  box-shadow:none!important;
+  transition:background .18s ease!important;
+}
+.ue-account:hover{
+  background:#005b98!important;
+  transform:none!important;
+  box-shadow:none!important;
+}
+.ue-login-icon{font-size:13px!important}
+.ue-chevron{font-size:9px!important;line-height:1!important;color:currentColor!important}
+
+@media(max-width:1050px){
+  header .head{padding:0 18px!important;gap:16px!important}
+  header .logo{width:170px!important}
+  .ue-nav{gap:17px!important}
+  .ue-nav-item{font-size:11px!important}
+}
+@media(max-width:800px){
+  header .head{
+    min-height:64px!important;
+    height:auto!important;
+    padding:7px 12px!important;
+    gap:10px!important;
+    overflow:hidden!important;
+  }
+  header .logo{
+    width:145px!important;
+    height:48px!important;
+  }
+  .ue-nav{
+    flex:1 1 auto!important;
+    max-width:none!important;
+    min-width:0!important;
+    gap:16px!important;
+    overflow-x:auto!important;
+    overflow-y:hidden!important;
+    justify-content:flex-start!important;
+    scrollbar-width:none!important;
+    -webkit-overflow-scrolling:touch!important;
+    padding:3px 0!important;
+  }
+  .ue-nav::-webkit-scrollbar{display:none!important}
+  .ue-nav-item{flex:0 0 auto!important;font-size:10px!important}
+  .ue-nav-separator{display:none!important}
+  .ue-account{
+    flex:0 0 auto!important;
+    min-height:36px!important;
+    padding:8px 11px!important;
+    font-size:10px!important;
+  }
+  .ue-account .ue-login-icon{display:none!important}
+}
+@media(max-width:520px){
+  header .head{
+    min-height:60px!important;
+    height:60px!important;
+    padding:5px 10px!important;
+  }
+  header .logo{width:125px!important;height:45px!important}
+  .ue-nav{gap:14px!important}
+  .ue-nav-item{font-size:9px!important}
+  .ue-account{padding:8px 10px!important}
+}
 </style></head><body><header><div class="head"><img class="logo" alt="União Express Uberaba" src="logo-uniao-express.jpeg"><nav class="ue-nav" aria-label="Menu principal"><a class="ue-nav-item" href="#cotacao">COTAÇÃO</a><a class="ue-nav-item" href="#previsao" id="ueDeliveryBtn" role="button">PREVISÃO DE ENTREGA</a><a class="ue-nav-item" href="#rastreamento" id="ueTrackBtn" role="button">RASTREAR CARGA</a><a class="ue-nav-item" href="#calculo" id="ueCalcBtn" role="button">COMO CALCULAMOS</a><a class="ue-nav-item" href="#coleta" id="ueColetaBtn" role="button">COLETA</a></nav><button class="ue-account" id="ueAccountAction" type="button" aria-label="Acessar minha conta"><span class="ue-login-icon">👤</span><span>ACESSAR MINHA CONTA</span></button><div class="brand">COTAÇÃO DE FRETE<br><b>UNIÃO EXPRESS • UBERABA</b></div></div></header><main><section class="hero"><div><div class="ey">Sistema de cotação</div><h1>Calcule seu frete em poucos segundos.</h1><p>Calculadora baseada na planilha fornecida da União Express Uberaba, com destinos, prazos e regras de cobrança.</p></div><div class="heroCard"><div><b>Base cadastrada</b><div class="big">227 destinos</div><span style="color:#64758b;font-size:12px">Cálculo automático por valor da NF, peso, pedágio e taxas da tabela.</span></div></div></section><section class="grid"><div class="card"><h2>Nova cotação</h2><p class="sub">Informe o destino, o valor da NF e o peso.</p><div class="fg"><div class="field"><label>Origem</label><input value="Uberaba - MG" readonly></div><div class="field"><label>Destino</label><select id="dest"></select></div><div class="field"><label for="cep">CEP de destino</label><input id="cep" inputmode="numeric" maxlength="9" placeholder="00000-000"></div><div class="field"><label>Valor da nota fiscal (R$)</label><input id="nf" inputmode="decimal" placeholder="Ex.: 3500,00"></div><div class="field"><label>Peso da carga (kg)</label><input id="kg" inputmode="decimal" placeholder="Ex.: 80"></div></div><div class="actions"><button class="primary" onclick="calc()">Calcular cotação</button><button class="ghost" onclick="clearForm()">Limpar</button><button class="ghost" onclick="printQ()">Imprimir</button><button id="newQuoteBtn" class="ghost" type="button" onclick="newQuote()">Nova cotação</button></div><div id="quoteSuccessAlert" role="alert" aria-live="polite">
   <div class="qsa-inner">
     <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
