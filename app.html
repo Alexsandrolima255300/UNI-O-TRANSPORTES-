@@ -7,18 +7,10 @@
   document.documentElement.style.visibility='hidden';
   async function protect(){
     const {data:{user}}=await client.auth.getUser();
-    if(!user){ 
-      try{ window.parent.postMessage({type:'OPEN_LOGIN'},'*'); }catch(e){}
-      location.replace('index.html');
-      return;
-    }
+    if(!user){document.documentElement.style.visibility='visible';return;}
     const {data:profile}=await client.from('profiles').select('role,active').eq('id',user.id).single();
-    if(!profile || profile.role!=='user' || profile.active===false){
-      await client.auth.signOut();
-      try{ window.parent.postMessage({type:'OPEN_LOGIN'},'*'); }catch(e){}
-      location.replace('index.html');
-      return;
-    }
+    if(profile?.role==='admin'){location.replace('admin.html');return;}
+    if(!profile || profile.role!=='user' || profile.active===false){await client.auth.signOut();}
     document.documentElement.style.visibility='visible';
   }
   protect().catch(()=>{location.replace('index.html')});
@@ -502,8 +494,8 @@ header .logo{
   </div>
   <div class="ue-footer-copy">© 2026 União Express. Todos os direitos reservados.</div>
 </footer><script>const raw={"MINAS GERAIS":[["ARAXÁ","1 DIA",null],["MONTE CARMELO","1 DIA",null],["PATOS DE MINAS","1 DIA",null],["PATROCÍNIO","1 DIA",null],["UBERLANDIA","1 DIA",null],["CONTAGEM","1 DIA",null],["BELO HORIZONTE","1 DIA",null],["JOAO PINHEIRO","2 DIAS",null],["PARACATU","2 DIAS",null],["JUIZ DE FORA","2 DIAS",null],["SÃO SEBASTIÃO DO PARAÍSO","3 DIAS",null]],"ESPÍRITO SANTO":[["CACHOEIRO DO ITAPEMIRIM","2 DIAS",null],["CASTELO","3 DIAS",null],["VITÓRIA","2 DIAS",null],["CARIACICA","2 DIAS","Atendimento especial"],["VIANA","2 DIAS","Atendimento especial"],["SERRA","2 DIAS","Atendimento especial"],["VILA VELHA","2 DIAS","Atendimento especial"]],"RIO DE JANEIRO":[["MACAÉ","2 DIAS",null],["RIO DE JANEIRO","2 DIAS",null],["NOVA FRIBURGO","2 DIAS",null],["PETROPOLIS","2 DIAS",null],["Duque de Caxias","1 DIA","Atendimento especial"],["Mesquita","1 DIA","Atendimento especial"],["Nilopolis","1 DIA","Atendimento especial"],["Nova Iguaçu","1 DIA","Atendimento especial"],["São João do Meriti","1 DIA","Atendimento especial"],["RESENDE","2 DIAS",null],["TERESOPOLIS","2 DIAS",null],["VOLTA REDONDA","2 DIAS",null]],"SÃO PAULO":[["ADAMANTINA","3 DIAS",null],["AMERICANA","3 DIAS",null],["ÁGUAS DE SÃO PEDRO","3 DIAS",null],["ARAÇATUBA","3 DIAS",null],["ARARAQUARA","3 DIAS",null],["AURIFLAMA","3 DIAS",null],["AVARÉ","3 DIAS",null],["BARRETOS","3 DIAS",null],["BAURU","3 DIAS",null],["BOTUCATU","3 DIAS",null],["BROTAS","3 DIAS",null],["BARRA BONITA","3 DIAS",null],["CAMPINAS ( itanarati*)","3 DIAS",null],["hortolandia 2,4,6 Feiras","3 DIAS","Atendimento especial"],["Paulinia 2.4 Feiras","3 DIAS","Atendimento especial"],["Sumare 2,4,6 Feiras","3 DIAS","Atendimento especial"],["Valinhos 3, 5 Feiras","3 DIAS","Atendimento especial"],["CAMPINAS","2 DIAS",null],["CATANDUVA","3 DIAS",null],["DRACENA","3 DIAS",null],["FERNANDOPÓLIS","3 DIAS",null],["FRANCA","3 DIAS",null],["GARÇA","3 DIAS",null],["GUARULHOS","3 DIAS",null],["IBITINGA","3 DIAS",null],["ILHA SOLTEIRA","3 DIAS",null],["ITAPETININGA","3 DIAS",null],["ITAPEVA","3 DIAS",null],["JALES","3 DIAS",null],["JAU","2 DIAS",null],["JUNDIAI ( Itamarati Express)","3 DIAS",null],["LENÇOES PAULISTA","3 DIAS",null],["LIMEIRA","2 DIAS",null],["Araras","2 DIAS","Atendimento especial"],["Arthur Nogueira","2 DIAS","Atendimento especial"],["Cordeiropolis","2 DIAS","Atendimento especial"],["Lins","2 DIAS","Atendimento especial"],["Santa Gertrudes","2 DIAS","Atendimento especial"],["MARILIA","2 DIAS",null],["MATÃO","3 DIAS",null],["NOVA ODESSA","2 DIAS",null],["OSASCO","1 DIA",null],["OSVALDO CRUZ","2 DIAS",null],["OURINHOS","1 DIA",null],["PEREIRA BARRETO","3 DIAS",null],["PIRACICABA GARAGEM","2 DIAS",null],["Capivari","2 DIAS","Atendimento especial"],["Charqueada","2 DIAS","Atendimento especial"],["Saltinho","2 DIAS","Atendimento especial"],["Rio das Pedras","2 DIAS","Atendimento especial"],["PRESIDENTE PRUDENTE","2 DIAS",null],["REGISTRO","2 DIAS",null],["RIBEIRÃO PRETO*","1 DIA",null],["RIBEIRÃO PRETO ( Irann- Federal)*","2 DIAS",null],["Batatais","2 DIAS","Atendimento especial"],["Barrinhas","2 DIAS","Atendimento especial"],["Brodowski","2 DIAS","Atendimento especial"],["Cravinhos","2 DIAS","Atendimento especial"],["Dumont","2 DIAS","Atendimento especial"],["Jaboticabal","2 DIAS","Atendimento especial"],["Jardinopolis","2 DIAS","Atendimento especial"],["Luiz Antônio","2 DIAS","Atendimento especial"],["Orlândia","2 DIAS","Atendimento especial"],["Pitangueiras","2 DIAS","Atendimento especial"],["Pontal","2 DIAS","Atendimento especial"],["Porto Ferreira","2 DIAS","Atendimento especial"],["Pradópolis","2 DIAS","Atendimento especial"],["Sales Oliveira","2 DIAS","Atendimento especial"],["São Simão","2 DIAS","Atendimento especial"],["Serra Azul","2 DIAS","Atendimento especial"],["Serrana","2 DIAS","Atendimento especial"],["Sertãozinho","2 DIAS","Atendimento especial"],["RIO CLARO","3 DIAS",null],["SANTA BÁRBARA D'OESTE","3 DIAS",null],["SANTA FÉ DO SUL*","2 DIAS",null],["SANTO ANDRÉ","1 DIA",null],["SANTOS","2 DIAS",null],["SÃO CARLOS","1 DIA",null],["SÃO JOSE DO RIO PRETO","2 DIAS",null],["SÃO JOSE DOS CAMPOS","2 DIAS",null],["SÃO PAULO BRÁS","1 DIA",null],["SÃO PAULO ( Central de Coletas)","1 DIA",null],["Aldeia da Serra","1 DIA","Atendimento especial"],["Arujá","1 DIA","Atendimento especial"],["Barueri","1 DIA","Atendimento especial"],["Bom Sucesso","1 DIA","Atendimento especial"],["Caieiras Moto","1 DIA","Atendimento especial"],["Cajamar","1 DIA","Atendimento especial"],["Carapicuiba","1 DIA","Atendimento especial"],["Cotia","1 DIA","Atendimento especial"],["Diadema","1 DIA","Atendimento especial"],["Embu das Artes","1 DIA","Atendimento especial"],["Ferraz Vasconcelos","1 DIA","Atendimento especial"],["Francisco Morato","1 DIA","Atendimento especial"],["Franco da Rocha","1 DIA","Atendimento especial"],["Guaianazes","1 DIA","Atendimento especial"],["Guarulhos","1 DIA","Atendimento especial"],["Itapecerica da Serra","1 DIA","Atendimento especial"],["Itapevi","1 DIA","Atendimento especial"],["Itaquaquecetuba","1 DIA","Atendimento especial"],["Jandira","1 DIA","Atendimento especial"],["Mauá","1 DIA","Atendimento especial"],["Mogi das Cruzes","1 DIA","Atendimento especial"],["Osasco","1 DIA","Atendimento especial"],["Parelheiros","1 DIA","Atendimento especial"],["Poá","1 DIA","Atendimento especial"],["Ribeirão Pires","1 DIA","Atendimento especial"],["Santa do Parnaíba","1 DIA","Atendimento especial"],["Santo André","1 DIA","Atendimento especial"],["São Bernardo do Campo","1 DIA","Atendimento especial"],["São Caetano do Sul","1 DIA","Atendimento especial"],["Suzano","1 DIA","Atendimento especial"],["Taboão da Serra","1 DIA","Atendimento especial"],["Vargem Grande Paulista","1 DIA","Atendimento especial"],["SÃO PEDRO","2 DIAS",null],["SOROCABA","2 DIAS",null],["TAQUARITUBA","2 DIAS",null],["TUPÃ","2 DIAS",null],["VOTUPORANGA","2 DIAS",null]],"SANTA CATARINA":[["BALNEÁRIO CAMBORIÚ","3 DIAS",null],["BLUMENAU","3 DIAS",null],["ITAJAÍ","3 DIAS",null],["BRUSQUE","3 DIAS",null],["FLORIANOPOLIS","3 DIAS",null],["Biguaçu","3 DIAS","Atendimento especial"],["Palhoça","3 DIAS","Atendimento especial"],["São Jose","3 DIAS","Atendimento especial"],["JARAGUÁ DO SUL","3 DIAS",null],["JOINVILLE","3 DIAS",null],["RIO DO SUL","3 DIAS",null]],"MATO GROSSO":[["CUIABÁ","3 DIAS",null],["LUCAS DO RIO VERDE","3 DIAS",null],["NOVA MUTUM","3 DIAS",null],["SINOP","3 DIAS",null],["SORRISO","3 DIAS",null],["RONDONOPOLIS","3 DIAS",null],["VARZEA GRANDE","3 DIAS",null]],"MATO GROSSO DO SUL":[["APARECIDA DO TABUADO","3 DIAS",null],["CAMPO GRANDE","3 DIAS",null],["DOURADOS","3 DIAS",null],["ITAPORÃ","3 DIAS",null],["MARACAJU","3 DIAS",null],["NAVIRAÍ","3 DIAS",null],["PARANAÍBA","3 DIAS",null]],"PARANÁ":[["ALTÔNIA","3 DIAS",null],["APUCARANA","3 DIAS",null],["AMAPORÃ","3 DIAS",null],["ARAPOTI","3 DIAS",null],["BANDEIRANTES","3 DIAS",null],["CAMPO MOURÃO","3 DIAS",null],["CASCAVEL","3 DIAS",null],["CASTRO","3 DIAS",null],["CIANORTE","3 DIAS",null],["CORNÉLIO PROCÓPIO","3 DIAS",null],["CURITIBA","2 DIAS",null],["Almirante Tamandaré","2 DIAS","Atendimento especial"],["Araucária","2 DIAS","Atendimento especial"],["Campina Grande do Sul","2 DIAS","Atendimento especial"],["Campo Largo","2 DIAS","Atendimento especial"],["Colombo","2 DIAS","Atendimento especial"],["Fazenda Rio Grande","2 DIAS","Atendimento especial"],["Pinhais","2 DIAS","Atendimento especial"],["Piraquara","2 DIAS","Atendimento especial"],["Quatro Barras","2 DIAS","Atendimento especial"],["São Jose dos Pinhais","2 DIAS","Atendimento especial"],["FOZ DO IGUAÇU","3 DIAS",null],["IBAITI","3 DIAS",null],["JACAREZINHO","3 DIAS",null],["JAGUARIAÍVA","3 DIAS",null],["LOANDA","3 DIAS",null],["LONDRINA","2 DIAS",null],["MAMBORÉ","3 DIAS",null],["MARINGA","2 DIAS",null],["MEDIANEIRA","3 DIAS",null],["NOVA ESPERANÇA","3 DIAS",null],["PARANAGUA","3 DIAS",null],["PARANAVAÍ","3 DIAS",null],["PIRAÍ DO SUL","3 DIAS",null],["PONTA GROSSA","2 DIAS",null],["RIBEIRÃO DO PINHAL","3 DIAS",null],["SANTA IZABEL DO IVAÍ","3 DIAS",null],["SÃO MIGUEL DO IGUAÇU","3 DIAS",null],["SIQUEIRA CAMPOS","3 DIAS",null],["UBIRATÃ","3 DIAS",null],["UMUARAMA","3 DIAS",null],["WENCESLAU BRÁZ","3 DIAS",null]],"RIO GRANDE DO SUL":[["CAXIAS DO SUL","3 DIAS",null],["BAGÉ","3 DIAS",null],["PELOTAS","3 DIAS",null],["RIO GRANDE","3 DIAS",null],["PORTO ALEGRE","3 DIAS",null],["Alvorada","3 DIAS","Atendimento especial"],["Cachoeirinha","3 DIAS","Atendimento especial"],["Canoas","3 DIAS","Atendimento especial"],["Esteio","3 DIAS","Atendimento especial"],["Gravataí","3 DIAS","Atendimento especial"],["Novo Hamburgo","3 DIAS","Atendimento especial"]]};
-const D=[];const U={'MINAS GERAIS':'MG','ESPÍRITO SANTO':'ES','RIO DE JANEIRO':'RJ','SÃO PAULO':'SP','SANTA CATARINA':'SC','MATO GROSSO':'MT','MATO GROSSO DO SUL':'MS','PARANÁ':'PR','RIO GRANDE DO SUL':'RS'};Object.entries(raw).forEach(([state,list])=>list.forEach(x=>D.push({city:x[0],state,prazo:x[1],note:x[2]})));
-function params(d){let s=d.state,c=d.city.toUpperCase();if(s==='MINAS GERAIS'){if(['ARAXÁ','MONTE CARMELO','PATOS DE MINAS','PATROCÍNIO','UBERLANDIA'].includes(c))return[40,.018,.7,'standard'];if(['CONTAGEM','BELO HORIZONTE'].includes(c))return[75,.02,1,'standard'];if(['JOAO PINHEIRO','PARACATU'].includes(c))return[50,.02,1,'standard'];return[100,.025,1.1,'standard']}if(s==='PARANÁ')return[100,.025,1.1,'pr'];return[130,.03,1.3,'standard']}
+let D=[];const U={'MINAS GERAIS':'MG','ESPÍRITO SANTO':'ES','RIO DE JANEIRO':'RJ','SÃO PAULO':'SP','SANTA CATARINA':'SC','MATO GROSSO':'MT','MATO GROSSO DO SUL':'MS','PARANÁ':'PR','RIO GRANDE DO SUL':'RS'};Object.entries(raw).forEach(([state,list])=>list.forEach(x=>D.push({city:x[0],state,prazo:x[1],note:x[2]})));
+function params(d){if(d&&d.custom)return[d.minimum_charge||0,d.nf_percentage||0,d.excess_price_per_kg||d.price_per_kg||0,d.ped==='pr'?'pr':'standard'];let s=d.state,c=d.city.toUpperCase();if(s==='MINAS GERAIS'){if(['ARAXÁ','MONTE CARMELO','PATOS DE MINAS','PATROCÍNIO','UBERLANDIA'].includes(c))return[40,.018,.7,'standard'];if(['CONTAGEM','BELO HORIZONTE'].includes(c))return[75,.02,1,'standard'];if(['JOAO PINHEIRO','PARACATU'].includes(c))return[50,.02,1,'standard'];return[100,.025,1.1,'standard']}if(s==='PARANÁ')return[100,.025,1.1,'pr'];return[130,.03,1.3,'standard']}
 const money=n=>new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(n||0);const parse=v=>{
   let s=String(v??'').trim().replace(/\s/g,'');
   if(!s)return 0;
@@ -793,4 +785,49 @@ header .logo{width:495px!important;height:94px!important;max-height:94px!importa
   header .head{min-height:108px!important;height:auto!important;overflow:visible!important}
   header .logo{width:min(100%,245px)!important;height:auto!important;max-height:88px!important}
 }
-</style></body></html>
+</style><script>
+/* PUBLIC_STANDARD_AUTH_CUSTOM_V1 */
+(async function(){
+  try{
+    const {data:{user}}=await supabaseClient.auth.getUser();
+    const hero=document.querySelector('.hero .ey'),sub=document.querySelector('.hero p');
+    if(!user){
+      if(hero)hero.textContent='Sistema de cotação pública';
+      if(sub)sub.textContent='Faça uma cotação padrão sem criar conta. Entre em “Acessar minha conta” para usar a tabela própria da sua empresa.';
+      return;
+    }
+    const {data:tables}=await supabaseClient.from('freight_tables').select('id,name,status,updated_at').eq('user_id',user.id).eq('status','active').order('updated_at',{ascending:false}).limit(1);
+    const table=tables?.[0];
+    if(!table){
+      if(hero)hero.textContent='Sistema de cotação padrão';
+      if(sub)sub.textContent='Sua conta não possui uma tabela própria ativa. A cotação padrão continua disponível.';
+      return;
+    }
+    const {data:rules,error}=await supabaseClient.from('freight_rules').select('destination,region,price_per_kg,fixed_price,nf_percentage,minimum_charge,excess_price_per_kg,conditions').eq('table_id',table.id).eq('user_id',user.id).order('rule_order',{ascending:true});
+    if(error||!rules?.length)return;
+    const map=new Map();
+    rules.forEach(r=>{
+      const city=(r.destination||'').trim();if(!city)return;
+      const key=city.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase();if(map.has(key))return;
+      const region=(r.region||'MINAS GERAIS').trim().toUpperCase();
+      const state=Object.keys(U).find(k=>U[k]===region)||region;
+      const rate=Number(r.excess_price_per_kg)||Number(r.price_per_kg)||0;
+      const min=Number(r.minimum_charge)||Number(r.fixed_price)||0;
+      const pct=Number(r.nf_percentage)||0;
+      const prazo=(r.conditions&& (r.conditions.prazo||r.conditions.delivery_days||r.conditions.dias))||'Conforme tabela';
+      map.set(key,{city,state,prazo:String(prazo),note:'Tabela própria',custom:true,minimum_charge:min,nf_percentage:pct,excess_price_per_kg:rate,price_per_kg:rate,ped:state==='PARANÁ'?'pr':'standard'});
+    });
+    const own=[...map.values()];if(!own.length)return;
+    D=own;
+    const dest=document.getElementById('dest');
+    const states=[...new Set(D.map(d=>d.state))];
+    dest.innerHTML='<option value="">Selecione o destino...</option>'+states.map(s=>'<optgroup label="'+s+'">'+D.map((d,i)=>d.state===s?'<option value="'+i+'">'+d.city+' — '+d.prazo+'</option>':'').join('')+'</optgroup>').join('');
+    const counts={};D.forEach(d=>counts[d.state]=(counts[d.state]||0)+1);
+    const statesEl=document.getElementById('states');if(statesEl)statesEl.innerHTML=Object.entries(counts).map(([s,n])=>'<div class="state"><b>'+s+'</b><span>'+n+' destinos • '+(U[s]||s)+'</span></div>').join('');
+    if(typeof render==='function')render();
+    if(hero)hero.textContent='Tabela personalizada da sua conta';
+    if(sub)sub.textContent='Sua tabela própria está ativa nesta cotação.';
+    window.UE_CUSTOM_TABLE={id:table.id,name:table.name};
+  }catch(e){console.warn('Tabela própria indisponível; mantendo tabela padrão.',e)}
+})();
+</script></body></html>
