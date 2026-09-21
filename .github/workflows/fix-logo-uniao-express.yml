@@ -26,7 +26,7 @@ jobs:
           from PIL import Image
           import re, colorsys
 
-          logo = Image.open('logo-uniao-express.jpeg').convert('RGB').resize((300, 300))
+          logo = Image.open('323dcaad-7aad-4160-b53b-adee97d0db40.png').convert('RGB').resize((300, 300))
           candidates = []
 
           for r, g, b in logo.getdata():
@@ -49,7 +49,7 @@ jobs:
           text = path.read_text(encoding='utf-8')
 
           pattern = r'(<img\s+class="logo"\s+alt="União Express Uberaba"\s+src=")[^"]*(")'
-          text, count = re.subn(pattern, r'\1logo-uniao-express.jpeg\2', text, count=1)
+          text, count = re.subn(pattern, r'\1323dcaad-7aad-4160-b53b-adee97d0db40.png\2', text, count=1)
           if count == 0:
               raise SystemExit('Logo do cabeçalho não encontrada em app.html')
 
