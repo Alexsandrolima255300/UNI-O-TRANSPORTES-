@@ -16,7 +16,36 @@ button,input,select{font:inherit}.admin{min-height:100vh;display:flex}.sidebar{w
 .user-create .field{position:relative}.user-create label{font-size:11px;font-weight:900;color:#344b63;display:grid;gap:7px}.user-create input,.user-create select{width:100%;height:45px;border:1px solid #d4dfeb;border-radius:11px;padding:0 13px;background:#fff;color:#172b42;outline:0;transition:.18s}.user-create input:focus,.user-create select:focus{border-color:#007ecb;box-shadow:0 0 0 3px #007ecb18}.user-create .hint{font-size:10px;color:#8090a2;font-weight:600;margin-top:-2px}.user-create .password-wrap{position:relative}.user-create .password-wrap input{padding-right:72px}.user-create .toggle-pass{position:absolute;right:7px;top:7px;height:31px;border:0;border-radius:8px;background:#eef4f9;color:#416078;font-size:10px;font-weight:900;cursor:pointer;padding:0 9px}.user-create .security{grid-column:1/-1;display:flex;gap:9px;align-items:flex-start;margin-top:2px;padding:11px 13px;background:#f7fafc;border:1px solid #e5edf4;border-radius:11px;color:#63778c;font-size:10px;line-height:1.45}.user-create .security b{color:#344b63}.user-create .form-actions{margin-top:6px;padding-top:14px;border-top:1px solid #edf1f5}.user-create .primary{min-width:145px}.user-create .secondary{min-width:90px}
 
 .inline-flex{display:inline-flex;vertical-align:middle}.ue-client-actions button{font:inherit;cursor:pointer;background:#fff;color:#374151;border:1px solid #d1d5db;padding:8px 14px;font-weight:600;transition:background-color .15s,color .15s,box-shadow .15s}.ue-client-actions .ue-edit-client{border-radius:4px 0 0 4px}.ue-client-actions .ue-view-client{margin-left:-1px;border-radius:0 4px 4px 0;padding:8px 10px}.ue-client-actions button:hover{background:#f9fafb;color:#111827}.ue-client-actions button:focus{position:relative;z-index:2;outline:0;box-shadow:0 0 0 2px #fff,0 0 0 4px rgba(59,130,246,.45)}.ue-client-actions svg{width:20px;height:20px;display:block}.ue-client-actions button:disabled{pointer-events:auto;opacity:.5}
-.ue-user-actions{display:inline-flex;align-items:center;gap:6px}.ue-user-actions button{font:inherit;cursor:pointer;border:1px solid #d1dbe6;background:#fff;color:#334b62;border-radius:8px;padding:7px 10px;font-size:11px;font-weight:800;transition:.16s}.ue-user-actions button:hover{background:#f3f8fc;border-color:#b9cedf}.ue-user-actions .danger{color:#b33434;border-color:#f0d1d1}.ue-user-actions .danger:hover{background:#fff3f3}.ue-user-actions svg{width:16px;height:16px;display:block}.ue-upload-panel{max-width:520px;margin:0 auto;text-align:center;padding:34px 24px}.ue-upload-icon{width:80px;height:80px;margin:0 auto;color:#9aa8b5}.ue-upload-icon svg{width:80px;height:80px}.ue-upload-panel h2{margin:24px 0 0;font-size:26px;color:#172b3f}.ue-upload-panel p{margin:14px 0;color:#536579;line-height:1.55}.ue-drop-zone{margin-top:22px;display:block;border:2px dashed #cbd5df;border-radius:12px;padding:26px;cursor:pointer;transition:.2s;background:#fff}.ue-drop-zone:hover,.ue-drop-zone.drag{background:#f5f9fc;border-color:#3b82c4}.ue-drop-zone span{font-size:14px;font-weight:800;color:#1769aa}.ue-drop-zone input{display:none}.ue-upload-help{font-size:12px!important;margin-top:20px!important}.ue-upload-file{margin:14px auto;padding:10px 12px;border-radius:8px;background:#eef6fb;color:#24506d;font-size:12px;font-weight:700}.ue-upload-panel>.secondary{margin-top:10px}/* ===== ADMIN REDESIGN — VISUAL ONLY ===== */
+.ue-user-actions{display:inline-flex;align-items:center;gap:6px}.ue-user-actions button{font:inherit;cursor:pointer;border:1px solid #d1dbe6;background:#fff;color:#334b62;border-radius:8px;padding:7px 10px;font-size:11px;font-weight:800;transition:.16s}.ue-user-actions button:hover{background:#f3f8fc;border-color:#b9cedf}.ue-user-actions .danger{color:#b33434;border-color:#f0d1d1}.ue-user-actions .danger:hover{background:#fff3f3}.ue-user-actions svg{width:16px;height:16px;display:block}.ue-upload-panel{max-width:520px;margin:0 auto;text-align:center;padding:34px 24px}.ue-upload-icon{width:80px;height:80px;margin:0 auto;color:#9aa8b5}.ue-upload-icon svg{width:80px;height:80px}.ue-upload-panel h2{margin:24px 0 0;font-size:26px;color:#172b3f}.ue-upload-panel p{margin:14px 0;color:#536579;line-height:1.55}.ue-drop-zone{margin-top:22px;display:block;border:2px dashed #cbd5df;border-radius:12px;padding:26px;cursor:pointer;transition:.2s;background:#fff}.ue-drop-zone:hover,.ue-drop-zone.drag{background:#f5f9fc;border-color:#3b82c4}.ue-drop-zone span{font-size:14px;font-weight:800;color:#1769aa}.ue-drop-zone input{display:none}.ue-upload-help{font-size:12px!important;margin-top:20px!important}.ue-upload-file{margin:14px auto;padding:10px 12px;border-radius:8px;background:#eef6fb;color:#24506d;font-size:12px;font-weight:700}.ue-upload-panel>.secondary{margin-top:10px}
+/* ===== ADMIN SIDEBAR COMPACT ===== */
+.ue-sidebar{width:64px!important;padding:12px 8px!important;align-items:center;z-index:10}
+.ue-side-brand{width:48px;height:48px;padding:0!important;margin:0 0 20px!important;justify-content:center;position:relative}
+.ue-side-brand img{display:none!important}
+.ue-brand-mark{display:grid!important;place-items:center;width:40px;height:40px;border-radius:11px;background:#0878c9;color:#fff;font-size:16px;font-weight:950;box-shadow:0 7px 18px rgba(0,126,203,.2)}
+.ue-side-nav{width:100%;gap:6px!important}
+.ue-side-nav button{width:48px;height:48px;padding:0!important;display:grid;place-items:center;text-align:center;position:relative;border-radius:12px!important;transform:none!important}
+.ue-side-nav button svg,.ue-side-logout svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.ue-side-nav button:first-child svg{fill:currentColor;stroke:none}
+.ue-side-nav button span,.ue-side-logout span{display:none}
+.ue-side-nav button:hover{transform:none!important}
+.ue-side-nav button::after,.ue-side-logout::after{
+  content:attr(aria-label);position:absolute;left:58px;top:50%;transform:translateY(-50%) translateX(-4px);
+  background:#172b42;color:#fff;padding:7px 9px;border-radius:7px;font-size:11px;font-weight:800;
+  white-space:nowrap;opacity:0;pointer-events:none;transition:.16s ease;box-shadow:0 8px 22px rgba(0,0,0,.16);z-index:30
+}
+.ue-side-nav button:hover::after,.ue-side-nav button:focus-visible::after,.ue-side-logout:hover::after,.ue-side-logout:focus-visible::after{opacity:1;transform:translateY(-50%) translateX(0)}
+.ue-side-logout{width:48px!important;height:48px;padding:0!important;margin-top:auto!important;display:grid;place-items:center;border-radius:12px!important;position:relative}
+.ue-side-logout::after{content:"Sair da administração"}
+.ue-side-logout:hover{transform:none!important}
+.main{margin-left:64px!important;width:calc(100% - 64px)!important;padding-left:30px!important}
+@media(max-width:650px){
+  .ue-sidebar{position:fixed!important;inset:0 auto 0 0!important;width:64px!important;height:100vh!important;border-right:1px solid var(--line)!important;border-bottom:0!important}
+  .main{margin-left:64px!important;width:calc(100% - 64px)!important;padding:18px!important}
+  .ue-side-nav{grid-template-columns:1fr!important}
+  .ue-side-logout{margin-top:auto!important}
+}
+
+/* ===== ADMIN REDESIGN — VISUAL ONLY ===== */
 :root{
   --blue:#0878c9;--blue2:#005fa8;--navy:#0b1f35;--ink:#142b43;
   --muted:#71839a;--line:#e5edf5;--bg:#f4f7fb;--white:#fff;
@@ -122,16 +151,19 @@ const SUPABASE_URL='https://rejyergahvzabyerhjhy.supabase.co',SUPABASE_PUBLISHAB
 </script></head>
 <body>
 <div class="admin">
-<aside class="sidebar">
-<div class="brand"><img src="logo-uniao-express.jpeg"><div><b>UNIÃO EXPRESS</b><span>Administração</span></div></div>
-<div class="nav">
-<button class="active" data-page="dashboard">Dashboard</button>
-<button data-page="empresas">Empresas</button>
-<button data-page="usuarios">Usuários</button>
-<button data-page="tabelas">Tabelas de frete</button>
-<button data-page="config">Configurações</button>
+<aside class="sidebar ue-sidebar">
+<div class="brand ue-side-brand" aria-label="União Express">
+  <img src="logo-uniao-express.jpeg" alt="União Express">
+  <span class="ue-brand-mark">U</span>
 </div>
-<button class="logout" id="logout">Sair da administração</button>
+<nav class="nav ue-side-nav" aria-label="Navegação administrativa">
+<button class="active" data-page="dashboard" aria-label="Dashboard" title="Dashboard"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 13h8V3H3v10Zm0 8h8v-6H3v6Zm10 0h8V11h-8v10Zm0-18v6h8V3h-8Z"/></svg><span>Dashboard</span></button>
+<button data-page="empresas" aria-label="Empresas" title="Empresas"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 21h18M5 21V5h9v16M14 21V9h5v12M8 8h3M8 12h3M8 16h3M16 12h1M16 16h1"/></svg><span>Empresas</span></button>
+<button data-page="usuarios" aria-label="Usuários" title="Usuários"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm13 10v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg><span>Usuários</span></button>
+<button data-page="tabelas" aria-label="Tabelas de frete" title="Tabelas de frete"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v14H4V5Zm0 4h16M9 5v14M15 5v14"/></svg><span>Tabelas de frete</span></button>
+<button data-page="config" aria-label="Configurações" title="Configurações"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8Zm8.94 4a7 7 0 0 0-.09-1l2-1.55-2-3.46-2.37.95a7.14 7.14 0 0 0-1.73-1L16.4 3h-4l-.35 2.94a7.14 7.14 0 0 0-1.73 1l-2.37-.95-2 3.46 2 1.55a7 7 0 0 0 0 2l-2 1.55 2 3.46 2.37-.95a7.14 7.14 0 0 0 1.73 1L12.4 21h4l.35-2.94a7.14 7.14 0 0 0 1.73-1l2.37.95 2-3.46-2-1.55c.06-.33.09-.66.09-1Z"/></svg><span>Configurações</span></button>
+</nav>
+<button class="logout ue-side-logout" id="logout" aria-label="Sair da administração" title="Sair"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h4M14 16l4-4-4-4M18 12H9"/></svg><span>Sair</span></button>
 </aside>
 <main class="main">
 <div class="top"><div><h1 id="pageTitle">Dashboard</h1><p>Gerencie clientes, usuários e tabelas do sistema União Express.</p></div><span class="badge">ADMINISTRADOR</span></div>
