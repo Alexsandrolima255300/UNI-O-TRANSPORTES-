@@ -852,4 +852,71 @@ header .logo{width:495px!important;height:94px!important;max-height:94px!importa
     window.UE_CUSTOM_TABLE={id:table.id,name:table.name};
   }catch(e){console.warn('Tabela própria indisponível; mantendo tabela padrão.',e)}
 })();
+</script>
+<style>
+/* PDF_COTACAO_UNIAO_V1 */
+@media print{
+  @page{size:A4;margin:12mm}
+  html,body{background:#fff!important}
+  body>*{display:none!important}
+  #uePdfQuote{display:block!important}
+}
+#uePdfQuote{display:none}
+.ue-pdf{font-family:Arial,Helvetica,sans-serif;color:#17324d;background:#fff;max-width:780px;margin:0 auto;padding:24px;box-sizing:border-box}
+.ue-pdf-head{display:flex;align-items:center;justify-content:space-between;border-bottom:4px solid #087bc8;padding-bottom:14px;margin-bottom:20px}
+.ue-pdf-logo{width:260px;height:70px;object-fit:contain}
+.ue-pdf-title{text-align:right}.ue-pdf-title small{display:block;color:#64778b;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em}.ue-pdf-title strong{display:block;color:#087bc8;font-size:21px;margin-top:3px}
+.ue-pdf-total{background:linear-gradient(135deg,#087bc8,#005b98);color:#fff;border-radius:12px;padding:18px 20px;margin-bottom:18px}
+.ue-pdf-total span{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.08em;opacity:.9}.ue-pdf-total b{display:block;font-size:31px;margin-top:4px}
+.ue-pdf-route{background:#eef7fd;border:1px solid #cfe5f5;border-radius:10px;padding:13px 15px;margin-bottom:18px}.ue-pdf-route small{display:block;color:#64778b;font-size:10px;font-weight:800;text-transform:uppercase}.ue-pdf-route strong{display:block;font-size:17px;margin-top:4px}.ue-pdf-route div{margin-top:6px;color:#64778b;font-size:11px}
+.ue-pdf-section{font-size:11px;font-weight:900;color:#087bc8;text-transform:uppercase;letter-spacing:.07em;margin:16px 0 7px}
+.ue-pdf-grid{display:grid;grid-template-columns:1fr 1fr;border:1px solid #dce5ec;border-radius:10px;overflow:hidden}
+.ue-pdf-line{display:flex;justify-content:space-between;gap:14px;padding:10px 12px;border-bottom:1px solid #e8edf1;font-size:12px}.ue-pdf-line:nth-child(odd){background:#f8fafc}.ue-pdf-line b{font-size:12px;color:#17324d;text-align:right}
+.ue-pdf-foot{margin-top:20px;padding-top:12px;border-top:1px solid #dce5ec;text-align:center;color:#718396;font-size:9px}
+@media(max-width:600px){.ue-pdf-grid{grid-template-columns:1fr}.ue-pdf-logo{width:190px}}
+</style>
+<script>
+(function(){
+  function txt(id){const e=document.getElementById(id);return e?e.textContent.trim():'R$ 0,00'}
+  function money(v){return v&&v.trim()?v.trim():'R$ 0,00'}
+  function esc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+  function buildPdf(){
+    let box=document.getElementById('uePdfQuote');
+    if(!box){box=document.createElement('div');box.id='uePdfQuote';document.body.appendChild(box)}
+    const sel=document.getElementById('dest');
+    const opt=sel&&sel.selectedIndex>=0?sel.options[sel.selectedIndex]:null;
+    const d=(typeof D!=='undefined'&&sel&&sel.value!==''&&D[Number(sel.value)])?D[Number(sel.value)]:null;
+    const city=d?.city || (opt?opt.textContent.split('—')[0].trim():'');
+    const state=d?.state || '';
+    const prazo=d?.prazo || (opt?opt.textContent.split('—')[1]?.trim():'');
+    const origin=document.getElementById('originAuto')?.value || 'Uberaba - MG';
+    const policy=txt('policy');
+    const rows=[
+      ['Frete por valor / mínimo',money(txt('fv'))],
+      ['Excedente de peso',money(txt('fp'))],
+      ['Despacho',money(txt('dp'))],
+      ['Pedágio',money(txt('pd'))],
+      ['CAT',money(txt('cat'))],
+      ['GRIS (0,15%)',money(txt('gris'))],
+      ['Cubagem',money(txt('cubagemM3'))],
+      ['Peso cubado (300 kg/m³)',money(txt('pesoCubado'))]
+    ];
+    const logo=document.querySelector('header .logo')?.src||'';
+    box.innerHTML='<div class="ue-pdf"><div class="ue-pdf-head">'+
+      '<img class="ue-pdf-logo" src="'+esc(logo)+'" alt="União Express">'+
+      '<div class="ue-pdf-title"><small>Cotação de frete</small><strong>UNIÃO EXPRESS</strong></div></div>'+
+      '<div class="ue-pdf-total"><span>Frete estimado</span><b>'+esc(txt('total'))+'</b></div>'+
+      '<div class="ue-pdf-route"><small>Origem e destino</small><strong>'+esc(origin)+' → '+esc(city)+' / '+esc(state)+'</strong><div>'+esc(policy)+'</div></div>'+
+      '<div class="ue-pdf-section">Prazo de entrega</div><div class="ue-pdf-line"><span>Prazo</span><b>'+esc(prazo||'Conforme tabela')+'</b></div>'+
+      '<div class="ue-pdf-section">Composição da cotação</div><div class="ue-pdf-grid">'+
+      rows.map(r=>'<div class="ue-pdf-line"><span>'+esc(r[0])+'</span><b>'+esc(r[1])+'</b></div>').join('')+
+      '</div><div class="ue-pdf-foot">Valor estimado sujeito às condições da tabela de frete vigente.</div></div>';
+  }
+  window.printQ=function(){
+    const res=document.getElementById('res');
+    if(!res||!res.classList.contains('show')){alert('Calcule uma cotação antes de imprimir.');return}
+    buildPdf();
+    setTimeout(()=>window.print(),80);
+  };
+})();
 </script></body></html>
