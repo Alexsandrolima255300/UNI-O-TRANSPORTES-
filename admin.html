@@ -156,7 +156,10 @@ tbody tr:hover td{background:#fbfdff}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script><script>
 const SUPABASE_URL='https://rejyergahvzabyerhjhy.supabase.co',SUPABASE_PUBLISHABLE_KEY='sb_publishable_A5oVTI7f-c-M1260_Mq1oA_Y2s0J6E8';const supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
 (async()=>{try{const {data:{user}}=await supabaseClient.auth.getUser();if(!user){location.replace('index.html');return}const {data:profile,error}=await supabaseClient.from('profiles').select('role,full_name,active').eq('id',user.id).single();if(error||!profile||profile.role!=='admin'||profile.active===false){await supabaseClient.auth.signOut();location.replace('index.html');return}window.UE_CURRENT_USER={...user,profile};document.body.classList.remove('auth-pending')}catch(e){location.replace('index.html')}})();
-</script></head>
+</script><style>
+<!-- COTACOES_ADMIN_V1 -->
+.ue-qcards{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:14px;margin:0 0 19px}.ue-qcard{background:#fff;border:1px solid #e4ecf4;border-radius:16px;padding:18px;box-shadow:var(--shadow)}.ue-qcard small{display:block;color:#71839a;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.3px}.ue-qnum{font-size:27px;font-weight:950;margin-top:7px;color:#102b45}.ue-qdot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px}.ue-qtable{min-width:1100px}.ue-qtable select{border:1px solid #d5e0eb;border-radius:8px;padding:6px 8px;background:#fff;font-size:11px;font-weight:800}.ue-qtype{font-size:10px;font-weight:900;border-radius:99px;padding:5px 8px;background:#eef6ff;color:#176aa5}.ue-qtype.vis{background:#f5f5f5;color:#697789}.ue-notify{position:fixed;right:22px;top:22px;z-index:100;background:#fff;border:1px solid #dce8f2;border-left:4px solid #0878c9;border-radius:13px;padding:13px 16px;box-shadow:0 16px 45px rgba(12,42,72,.16);font-size:12px;font-weight:900;display:none}.ue-notify.show{display:block;animation:ueIn .22s ease}@keyframes ueIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}.ue-graphs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}.ue-graph-card{background:#fff;border:1px solid #e4ecf4;border-radius:18px;padding:20px;box-shadow:var(--shadow)}.ue-graph-card h3{margin:0;font-size:15px}.ue-graph{height:270px;margin-top:10px}.ue-full{grid-column:1/-1}@media(max-width:1100px){.ue-qcards{grid-template-columns:repeat(3,minmax(0,1fr))}}@media(max-width:700px){.ue-qcards,.ue-graphs{grid-template-columns:1fr}.ue-full{grid-column:auto}}
+</style></head>
 <body class="auth-pending">
 <div class="admin">
 <aside class="sidebar ue-sidebar">
@@ -173,6 +176,8 @@ const SUPABASE_URL='https://rejyergahvzabyerhjhy.supabase.co',SUPABASE_PUBLISHAB
 </nav>
 <button class="logout ue-side-logout" id="logout" aria-label="Sair da administração" title="Sair"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h4M14 16l4-4-4-4M18 12H9"/></svg><span>Sair</span></button>
 </aside>
+
+<div class="ue-notify" id="ueQuoteNotify">🔔 Nova cotação recebida</div>
 <main class="main">
 <div class="top"><div><h1 id="pageTitle">Dashboard</h1><p>Gerencie clientes, usuários e tabelas do sistema União Express.</p></div><span class="badge">ADMINISTRADOR</span></div>
 
@@ -265,4 +270,69 @@ document.querySelectorAll('[data-quote-range]').forEach(b=>b.onclick=()=>{docume
 window.UERefreshQuoteChart=()=>{const active=document.querySelector('[data-quote-range][aria-pressed="true"]');renderQuoteChart(active?.dataset.quoteRange||'6m')};
 document.addEventListener('DOMContentLoaded',()=>renderQuoteChart('6m'));
 })();
-</script></body></html>
+</script>
+<script>
+<!-- COTACOES_ADMIN_V1 -->
+(function(){
+  const SB_URL='https://rejyergahvzabyerhjhy.supabase.co';
+  const SB_KEY='sb_publishable_A5oVTI7f-c-M1260_Mq1oA_Y2s0J6E8';
+  const SB=window.supabase.createClient(SB_URL,SB_KEY);
+  let quotes=[], charts={};
+  const esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+  const money=v=>Number(v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+  const fmtDate=v=>v?new Date(v).toLocaleString('pt-BR',{dateStyle:'short',timeStyle:'short'}):'—';
+  const statusLabel=s=>s==='em_analise'?'Em análise':s==='finalizada'?'Finalizada':'Nova';
+  const statusClass=s=>s==='finalizada'?'status':s==='em_analise'?'status off':'status';
+  function addNav(){
+    const nav=document.querySelector('.ue-side-nav'); if(!nav||nav.querySelector('[data-page="cotacoes"]'))return;
+    const b=document.createElement('button');b.dataset.page='cotacoes';b.setAttribute('aria-label','Cotações');b.title='Cotações';b.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v14H4V5Zm0 4h16M8 5v14M12 9h5M12 13h5M12 17h3"/></svg><span>Cotações</span>';
+    const config=nav.querySelector('[data-page="config"]'); nav.insertBefore(b,config||null); b.addEventListener('click',()=>showPage('cotacoes'));
+    const g=document.createElement('button');g.dataset.page='graficos';g.setAttribute('aria-label','Gráficos');g.title='Gráficos';g.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V5M4 19h16M7 15l3-4 3 2 5-6"/></svg><span>Gráficos</span>';nav.insertBefore(g,config||null);g.addEventListener('click',()=>showPage('graficos'));
+  }
+  function makePages(){
+    if(document.getElementById('cotacoes'))return;
+    const dash=document.getElementById('dashboard');
+    const cards=document.createElement('div');cards.className='ue-qcards';cards.id='ueQCards';cards.innerHTML=['Novas','Em análise','Finalizadas','Clientes','Visitantes'].map((x,i)=>'<div class="ue-qcard"><small>'+x+'</small><div class="ue-qnum" id="ueQ'+i+'">0</div></div>').join('');dash.prepend(cards);
+    const page=document.createElement('section');page.className='page';page.id='cotacoes';page.innerHTML='<div class="section"><div class="section-head"><div><h2>Cotações recebidas</h2><p style="margin:6px 0 0;color:var(--muted);font-size:12px">Cotações reais feitas por clientes e visitantes, atualizadas em tempo real.</p></div><button class="secondary" id="ueQRefresh">Atualizar</button></div><div class="toolbar"><input id="ueQSearch" placeholder="Pesquisar nome, empresa, origem ou destino..."><select id="ueQStatus"><option value="">Todos os status</option><option value="nova">Nova</option><option value="em_analise">Em análise</option><option value="finalizada">Finalizada</option></select></div><div class="table-wrap"><table class="ue-qtable"><thead><tr><th>Nome</th><th>Empresa</th><th>Origem</th><th>Destino</th><th>Peso</th><th>Valor NF</th><th>Valor Cotação</th><th>Data</th><th>Tipo</th><th>Status</th></tr></thead><tbody id="ueQBody"></tbody></table></div></div>';
+    dash.parentNode.insertBefore(page,dash.nextSibling);
+    const graph=document.createElement('section');graph.className='page';graph.id='graficos';graph.innerHTML='<div class="ue-graphs"><div class="ue-graph-card"><h3>Cotações por dia</h3><div class="ue-graph"><canvas id="gDay"></canvas></div></div><div class="ue-graph-card"><h3>Cotações por mês</h3><div class="ue-graph"><canvas id="gMonth"></canvas></div></div><div class="ue-graph-card"><h3>Clientes x Visitantes</h3><div class="ue-graph"><canvas id="gUsers"></canvas></div></div><div class="ue-graph-card"><h3>Transportadoras mais usadas</h3><div class="ue-graph"><canvas id="gCarriers"></canvas></div></div><div class="ue-graph-card"><h3>Valor total cotado</h3><div class="ue-graph"><canvas id="gValue"></canvas></div></div><div class="ue-graph-card"><h3>Status das cotações</h3><div class="ue-graph"><canvas id="gStatus"></canvas></div></div><div class="ue-graph-card ue-full"><h3>Visão mensal — clientes, visitantes e cotações</h3><div class="ue-graph"><canvas id="gMix"></canvas></div></div></div>';
+    page.parentNode.insertBefore(graph,page.nextSibling);
+    document.getElementById('ueQSearch').addEventListener('input',renderTable);document.getElementById('ueQStatus').addEventListener('change',renderTable);document.getElementById('ueQRefresh').addEventListener('click',load);
+  }
+  function showPage(id){
+    addNav();makePages();document.querySelectorAll('.page').forEach(p=>p.classList.toggle('active',p.id===id));document.querySelectorAll('.ue-side-nav button').forEach(b=>b.classList.toggle('active',b.dataset.page===id));
+    const title=id==='cotacoes'?'Cotações':id==='graficos'?'Gráficos':document.getElementById('pageTitle')?.textContent||'Dashboard';if(document.getElementById('pageTitle'))document.getElementById('pageTitle').textContent=title;
+    if(id==='graficos')renderCharts();
+  }
+  function renderTable(){
+    const q=(document.getElementById('ueQSearch')?.value||'').toLowerCase();const st=document.getElementById('ueQStatus')?.value||'';
+    const rows=quotes.filter(x=>!st||x.status===st).filter(x=>!q||[x.nome,x.empresa,x.origem,x.destino,x.email].join(' ').toLowerCase().includes(q));
+    document.getElementById('ueQBody').innerHTML=rows.map(x=>'<tr><td><b>'+esc(x.nome||'Visitante')+'</b></td><td>'+esc(x.empresa||'—')+'</td><td>'+esc(x.origem||'—')+'</td><td>'+esc(x.destino||'—')+'</td><td>'+esc(x.peso==null?'—':x.peso+' kg')+'</td><td>'+money(x.valor_nf)+'</td><td><b>'+money(x.valor_cotacao)+'</b></td><td>'+fmtDate(x.created_at)+'</td><td><span class="ue-qtype '+(x.tipo_usuario==='visitante'?'vis':'')+'">'+(x.tipo_usuario==='cliente'?'Cliente':'Visitante')+'</span></td><td><select data-status-id="'+esc(x.id)+'"><option value="nova" '+(x.status==='nova'?'selected':'')+'>Nova</option><option value="em_analise" '+(x.status==='em_analise'?'selected':'')+'>Em análise</option><option value="finalizada" '+(x.status==='finalizada'?'selected':'')+'>Finalizada</option></select></td></tr>').join('')||'<tr><td colspan="10" class="empty">Nenhuma cotação encontrada.</td></tr>';
+    document.querySelectorAll('[data-status-id]').forEach(el=>el.addEventListener('change',async()=>{const {error}=await SB.from('cotacoes').update({status:el.value}).eq('id',el.dataset.statusId);if(error)console.error(error);else await load(false)}));
+  }
+  function set(id,v){const e=document.getElementById(id);if(e)e.textContent=String(v)}
+  function stats(){const novas=quotes.filter(x=>x.status==='nova').length, analise=quotes.filter(x=>x.status==='em_analise').length, finalizadas=quotes.filter(x=>x.status==='finalizada').length, clientes=new Set(quotes.filter(x=>x.tipo_usuario==='cliente'&&x.user_id).map(x=>x.user_id)).size, visitantes=quotes.filter(x=>x.tipo_usuario==='visitante').length;set('ueQ0',novas);set('ueQ1',analise);set('ueQ2',finalizadas);set('ueQ3',clientes);set('ueQ4',visitantes);}
+  function destroy(id){if(charts[id]){charts[id].destroy();delete charts[id]}}
+  function chart(id,type,labels,data,extra){destroy(id);const c=document.getElementById(id);if(!c||!window.Chart)return;charts[id]=new Chart(c.getContext('2d'),{type,data,options:Object.assign({responsive:true,maintainAspectRatio:false,plugins:{legend:{display:type==='doughnut'}}},extra||{})})}
+  function group(){const now=new Date();const days=[];for(let i=29;i>=0;i--){const d=new Date(now.getFullYear(),now.getMonth(),now.getDate()-i);days.push(d.toISOString().slice(0,10))}const dayVals=days.map(k=>quotes.filter(x=>String(x.created_at).slice(0,10)===k).length);const months=[];for(let i=11;i>=0;i--){const d=new Date(now.getFullYear(),now.getMonth()-i,1);months.push(d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'))}const monthVals=months.map(k=>quotes.filter(x=>String(x.created_at).slice(0,7)===k).length);return{days,dayVals,months,monthVals}}
+  function renderCharts(){
+    const z=group();chart('gDay','line',z.days,{labels:z.days.map(x=>x.slice(8,10)+'/'+x.slice(5,7)),datasets:[{label:'Cotações',data:z.dayVals,tension:.35,fill:true}]},{plugins:{legend:{display:false}}});
+    chart('gMonth','bar',z.months,{labels:z.months.map(x=>x.slice(5,7)+'/'+x.slice(0,4)),datasets:[{label:'Cotações',data:z.monthVals}]},{plugins:{legend:{display:false}}});
+    const cli=quotes.filter(x=>x.tipo_usuario==='cliente').length,vis=quotes.filter(x=>x.tipo_usuario==='visitante').length;chart('gUsers','doughnut',['Clientes','Visitantes'],{labels:['Clientes','Visitantes'],datasets:[{data:[cli,vis]}]});
+    const carrierMap={};quotes.forEach(x=>{const k=x.transportadora||'Não informado';carrierMap[k]=(carrierMap[k]||0)+1});const cs=Object.entries(carrierMap).sort((a,b)=>b[1]-a[1]).slice(0,8);chart('gCarriers','bar',cs.map(x=>x[0]),{labels:cs.map(x=>x[0]),datasets:[{label:'Cotações',data:cs.map(x=>x[1])}]},{indexAxis:'y',plugins:{legend:{display:false}}});
+    const total=quotes.reduce((a,x)=>a+Number(x.valor_cotacao||0),0);chart('gValue','line',z.months,{labels:z.months.map(x=>x.slice(5,7)+'/'+x.slice(0,4)),datasets:[{label:'Valor cotado',data:z.months.map(k=>quotes.filter(x=>String(x.created_at).slice(0,7)===k).reduce((a,x)=>a+Number(x.valor_cotacao||0),0)),tension:.35}]},{plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>' '+money(c.raw)}}}});void total;
+    const ns=['nova','em_analise','finalizada'];chart('gStatus','doughnut',['Novas','Em análise','Finalizadas'],{labels:['Novas','Em análise','Finalizadas'],datasets:[{data:ns.map(k=>quotes.filter(x=>x.status===k).length)}]});
+    chart('gMix','line',z.months,{labels:z.months.map(x=>x.slice(5,7)+'/'+x.slice(0,4)),datasets:[{label:'Cotações',data:z.monthVals,tension:.35},{label:'Clientes',data:z.months.map(k=>new Set(quotes.filter(x=>x.tipo_usuario==='cliente'&&String(x.created_at).slice(0,7)===k).map(x=>x.user_id).filter(Boolean)).size),tension:.35},{label:'Visitantes',data:z.months.map(k=>quotes.filter(x=>x.tipo_usuario==='visitante'&&String(x.created_at).slice(0,7)===k).length),tension:.35}]});
+    const old=document.getElementById('quote-line-chart');if(old&&window.Chart){const vals=z.monthVals;const q=Chart.getChart(old);if(q)q.destroy();new Chart(old.getContext('2d'),{type:'line',data:{labels:z.months.map(x=>x.slice(5,7)+'/'+x.slice(0,4)),datasets:[{label:'Cotações',data:vals,tension:.35,fill:true}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}}}})}
+  }
+  async function load(showNotify=true){
+    const {data,error}=await SB.from('cotacoes').select('*').order('created_at',{ascending:false});if(error){console.error('[UNI-O] cotacoes',error);return}quotes=data||[];stats();renderTable();if(document.getElementById('graficos')?.classList.contains('active'))renderCharts();
+  }
+  function notify(){const n=document.getElementById('ueQuoteNotify');if(!n)return;n.classList.add('show');setTimeout(()=>n.classList.remove('show'),4200)}
+  function startRealtime(){SB.channel('cotacoes-admin-realtime').on('postgres_changes',{event:'INSERT',schema:'public',table:'cotacoes'},payload=>{quotes=[payload.new,...quotes];stats();renderTable();renderCharts();notify()}).on('postgres_changes',{event:'UPDATE',schema:'public',table:'cotacoes'},payload=>{const i=quotes.findIndex(x=>x.id===payload.new.id);if(i>=0)quotes[i]=payload.new;stats();renderTable();renderCharts()}).on('postgres_changes',{event:'DELETE',schema:'public',table:'cotacoes'},payload=>{quotes=quotes.filter(x=>x.id!==payload.old.id);stats();renderTable();renderCharts()}).subscribe();}
+  const originalShow=window.showPage;
+  function boot(){addNav();makePages();load();startRealtime();}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
+})();
+</script>
+</body></html>
