@@ -950,7 +950,7 @@ header .logo{width:495px!important;height:94px!important;max-height:94px!importa
       destino:selected?.textContent?.split(' — ')[0]?.trim()||selected?.textContent?.trim()||null,
       peso:num('kg'),
       valor_nf:num('nf'),
-      valor_cotacao:Number((textOf('total')||'').replace(/[^0-9,.-]/g,'').replace(/\./g,'').replace(',','.'))||null,
+      valor_cotacao:(()=>{const s=String(textOf('total')||'').replace(/[^0-9,.-]/g,'');const n=Number(s.replace(/\./g,'').replace(',','.'));return Number.isFinite(n)?n:null;})(),
       transportadora:'União Express',
       status:'nova',
       user_id:user?.id||null,
