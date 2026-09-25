@@ -1,4 +1,4 @@
-<!doctype html><html lang="pt-BR"><head><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!doctype html><html lang="pt-BR"><head><script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 (function(){
   const URL='https://rejyergahvzabyerhjhy.supabase.co';
@@ -951,19 +951,55 @@ header .logo{width:495px!important;height:94px!important;max-height:94px!importa
     const qrCode=qr.querySelector('#quoteQrCode');qrCode.innerHTML='';
     if(typeof QRCode!=='undefined'){new QRCode(qrCode,{text:location.origin+'/rastrear.html?codigo='+encodeURIComponent(code),width:120,height:120,correctLevel:QRCode.CorrectLevel.M});}
     qr.classList.add('show')}
-  async function saveQuote(){
-    const res=document.getElementById('res');if(!res?.classList.contains('show'))return;
+  async function saveQuote(code){
+    const res=document.getElementById('res');
+    if(!res?.classList.contains('show')) return;
     const {data:{user}}=await quoteClient.auth.getUser();
-    const destination=document.getElementById('dest');const selected=destination?.selectedOptions?.[0];
+    const destination=document.getElementById('dest');
+    const selected=destination?.selectedOptions?.[0];
     const origin=document.getElementById('originAuto')?.value||'Uberaba - MG';
     const originCompany=document.querySelector('#cnpjOrigemStatus b')?.textContent?.trim()||'';
-    const code=quoteCode();
-    const payload={codigo_cotacao:code,nome:user?.user_metadata?.full_name||user?.user_metadata?.name||window.UE_CURRENT_USER?.profile?.full_name||user?.email?.split('@')[0]||null,empresa:originCompany||null,telefone:user?.phone||null,email:user?.email||null,origem:origin,destino:selected?.textContent?.split(' — ')[0]?.trim()||selected?.textContent?.trim()||null,peso:num('kg'),valor_nf:num('nf'),valor_cotacao:(()=>{const s=String(textOf('total')||'').replace(/[^0-9,.-]/g,'');const n=Number(s.replace(/\./g,'').replace(',','.'));return Number.isFinite(n)?n:null})(),transportadora:'União Express',status:'nova',user_id:user?.id||null,tipo_usuario:user?'cliente':'visitante'};
+    const payload={
+      codigo_cotacao:code,
+      nome:user?.user_metadata?.full_name||user?.user_metadata?.name||window.UE_CURRENT_USER?.profile?.full_name||user?.email?.split('@')[0]||null,
+      empresa:originCompany||null,
+      telefone:user?.phone||null,
+      email:user?.email||null,
+      origem:origin,
+      destino:selected?.textContent?.split(' — ')[0]?.trim()||selected?.textContent?.trim()||null,
+      peso:num('kg'),
+      valor_nf:num('nf'),
+      valor_cotacao:(()=>{
+        const s=String(textOf('total')||'').replace(/[^0-9,.-]/g,'');
+        const n=Number(s.replace(/\\./g,'').replace(',','.'));
+        return Number.isFinite(n)?n:null
+      })(),
+      transportadora:'União Express',
+      status:'nova',
+      user_id:user?.id||null,
+      tipo_usuario:user?'cliente':'visitante'
+    };
     const {error}=await quoteClient.from('cotacoes').insert(payload);
-    if(error){console.error('[UNI-O] Não foi possível salvar a cotação:',error);return;}
-    showQuoteCode(code);
+    if(error){
+      console.error('[UNI-O] Não foi possível salvar a cotação:',error);
+      return {saved:false,error};
+    }
+    return {saved:true};
   }
-  window.calc=async function(){const result=originalCalc();try{await saveQuote()}catch(error){console.error('[UNI-O] Erro ao registrar cotação:',error)}return result};
+    window.calc=async function(){const result=await Promise.resolve(originalCalc());
+    if(document.getElementById('res')?.classList.contains('show')){
+      const code=quoteCode();
+      // Exibe imediatamente: o QR/código não depende do Supabase responder.
+      showQuoteCode(code);
+      try{
+        await saveQuote(code);
+      }catch(error){
+        console.error('[UNI-O] Erro ao registrar cotação:',error);
+      }
+    }
+    return result;
+  };
+const result=originalCalc();try{await saveQuote()}catch(error){console.error('[UNI-O] Erro ao registrar cotação:',error)}return result};
 })();
 </script>
 </body></html>
