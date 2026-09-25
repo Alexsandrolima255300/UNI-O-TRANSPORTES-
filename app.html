@@ -1093,3 +1093,108 @@ header .logo{width:495px!important;height:94px!important;max-height:94px!importa
 })();
 </script>
 </body></html>
+<style id="UE_UPGRADES_V2">
+/* ===== UNI-O UPGRADES — visual/UX only; calculation logic untouched ===== */
+.ue-progress{position:fixed;top:0;left:0;right:0;height:4px;background:rgba(255,255,255,.22);z-index:99999;pointer-events:none}
+.ue-progress>span{display:block;height:100%;width:0;background:#fff;box-shadow:0 0 12px rgba(255,255,255,.8);transition:width .35s ease}
+.ue-field-focus{transform:translateY(-1px);transition:transform .18s ease,box-shadow .18s ease}
+.field:has(input:focus),.field:has(select:focus){filter:drop-shadow(0 4px 9px rgba(0,111,186,.08))}
+.actions button{transition:transform .18s ease,box-shadow .18s ease,filter .18s ease}
+.actions button:hover{transform:translateY(-2px);box-shadow:0 8px 18px rgba(16,35,63,.10)}
+.actions button:active{transform:translateY(0) scale(.98)}
+#res.show{animation:ueResultIn .5s cubic-bezier(.22,1,.36,1) both}
+.ue-quote-value-card{position:relative;overflow:hidden}
+.ue-quote-value-card::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(100deg,transparent 20%,rgba(255,255,255,.65) 50%,transparent 80%);transform:translateX(-120%);animation:ueShine 1.2s .2s ease both}
+.ue-step-hint{margin:0 0 14px;padding:11px 13px;border:1px solid #d7e7f7;border-radius:12px;background:#f7fbff;color:#4e657c;font-size:11px;display:flex;align-items:center;gap:9px}
+.ue-step-hint b{color:#0758b7}
+.ue-cnpj-status-visual{display:flex;align-items:center;gap:7px;margin-top:6px;font-size:11px;font-weight:800}
+.ue-cnpj-status-visual.ok{color:#168447}.ue-cnpj-status-visual.wait{color:#0758b7}
+.ue-cnpj-dot{width:7px;height:7px;border-radius:50%;background:currentColor;animation:uePulse 1.2s infinite}
+@keyframes ueResultIn{from{opacity:0;transform:translateY(12px) scale(.99)}to{opacity:1;transform:none}}
+@keyframes ueShine{to{transform:translateX(120%)}}
+@keyframes uePulse{50%{opacity:.35;transform:scale(.75)}}
+@media(max-width:600px){
+ .ue-progress{height:3px}
+ .hero{grid-template-columns:1fr!important}
+ .heroCard{order:-1}
+ .actions{display:grid!important;grid-template-columns:1fr 1fr;gap:9px!important}
+ .actions .primary{grid-column:1/-1}
+ .ue-quote-value-card{flex-direction:column!important;align-items:flex-start!important}
+}
+@media(prefers-reduced-motion:reduce){
+ #res.show,.ue-quote-value-card::after{animation:none!important}
+ .actions button{transition:none}
+}
+@media print{
+ body{background:#fff!important;color:#172b43!important}
+ header,.hero,.grid>.card:not(:has(#res)),aside,.ue-nav,.ue-account,.actions,#quoteSuccessAlert,#quoteErrorAlert,.cities,.ue-progress{display:none!important}
+ main{max-width:none!important;padding:0!important;margin:0!important}
+ #res{display:block!important;box-shadow:none!important;border:1px solid #dce5ed!important;margin:0!important;padding:18px!important}
+ #res .ue-quote-value-card{box-shadow:none!important}
+ #res::before{content:"UNIÃO EXPRESS • COTAÇÃO DE FRETE";display:block;font-size:18px;font-weight:900;margin-bottom:16px}
+ .ue-quote-value-card::after{display:none!important}
+}
+</style>
+<script>
+/* UE_UPGRADES_RUNTIME_V2 — UI only */
+(function(){
+'use strict';
+const $=id=>document.getElementById(id);
+function addProgress(){
+ if($('ueProgress'))return;
+ const b=document.createElement('div');b.id='ueProgress';b.className='ue-progress';b.innerHTML='<span></span>';
+ document.body.appendChild(b);
+}
+function updateProgress(){
+ const ids=['dest','cep','nf','kg'];
+ const values=ids.map(id=>$(id)?.value?.trim()).filter(Boolean).length;
+ const cube=['cubagemComp','cubagemLarg','cubagemAlt'].every(id=>$(id)?.value?.trim());
+ const pct=Math.min(100,Math.round(((values+(cube?1:0))/(ids.length+1))*100));
+ const bar=$('ueProgress')?.firstElementChild;if(bar)bar.style.width=pct+'%';
+ const hint=$('ueStepHint');
+ if(hint){
+   if($('res')?.classList.contains('show')) hint.innerHTML='<span>✓</span><b>Cotação pronta.</b> Confira o resultado abaixo.';
+   else if(pct<35) hint.innerHTML='<span>1</span><b>Comece pelo destino.</b> Depois informe NF e peso.';
+   else if(pct<75) hint.innerHTML='<span>2</span><b>Quase lá.</b> Complete os dados da carga.';
+   else hint.innerHTML='<span>3</span><b>Pronto para calcular.</b> Clique em “Calcular cotação”.';
+ }
+}
+function enhanceForm(){
+ addProgress();
+ const card=[...document.querySelectorAll('.card')].find(x=>x.querySelector('#dest')&&x.querySelector('#nf'));
+ if(card&&!$('ueStepHint')){
+   const h=document.createElement('div');h.id='ueStepHint';h.className='ue-step-hint';h.innerHTML='<span>1</span><b>Comece pelo destino.</b> Depois informe NF e peso.';
+   const sub=card.querySelector('.sub');sub?.after(h);
+ }
+ ['dest','cep','nf','kg','cubagemQtd','cubagemComp','cubagemLarg','cubagemAlt'].forEach(id=>{
+   const el=$(id); if(!el||el.dataset.ueUpgrade)return;
+   el.dataset.ueUpgrade='1'; ['input','change'].forEach(ev=>el.addEventListener(ev,updateProgress));
+   el.addEventListener('focus',()=>el.closest('.field')?.classList.add('ue-field-focus'));
+   el.addEventListener('blur',()=>el.closest('.field')?.classList.remove('ue-field-focus'));
+ });
+ updateProgress();
+}
+function enhanceCnpj(){
+ ['cnpjOrigem','cnpjDestinatario'].forEach(id=>{
+   const input=$(id);if(!input||input.dataset.ueStatus)return;input.dataset.ueStatus='1';
+   const status=document.createElement('div');status.className='ue-cnpj-status-visual';status.dataset.for=id;
+   status.innerHTML='<span class="ue-cnpj-dot"></span><span>Aguardando CNPJ...</span>';
+   input.parentElement?.appendChild(status);
+   const sync=()=>{
+     const digits=(input.value||'').replace(/\D/g,'');
+     if(input.dataset.companyName){status.className='ue-cnpj-status-visual ok';status.innerHTML='<span>✓</span><span>'+input.dataset.companyName+'</span>';}
+     else if(digits.length===14){status.className='ue-cnpj-status-visual wait';status.innerHTML='<span class="ue-cnpj-dot"></span><span>Consultando empresa...</span>';}
+     else {status.className='ue-cnpj-status-visual';status.innerHTML='<span>○</span><span>Informe o CNPJ para identificar a empresa.</span>';}
+   };
+   input.addEventListener('input',sync);input.addEventListener('blur',()=>setTimeout(sync,300));setTimeout(sync,400);
+ });
+}
+function observeResult(){
+ const res=$('res');if(!res||res.dataset.ueObserve)return;res.dataset.ueObserve='1';
+ new MutationObserver(()=>updateProgress()).observe(res,{attributes:true,attributeFilter:['class']});
+}
+function init(){enhanceForm();enhanceCnpj();observeResult();updateProgress();}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
+setTimeout(init,700);setTimeout(init,1800);
+})();
+</script>
