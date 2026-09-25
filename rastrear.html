@@ -60,3 +60,25 @@ document.getElementById('codigo').addEventListener('keydown',e=>{if(e.key==='Ent
 const q=new URLSearchParams(location.search).get('codigo');if(q){document.getElementById('codigo').value=q;buscar()}
 </script>
 </body></html>
+<style id="UE_TRACKING_UPGRADES_V2">
+.timeline{position:relative;margin:20px 0 24px;padding-left:4px}.timeline::before{content:"";position:absolute;left:11px;top:9px;bottom:9px;width:2px;background:#dbe7ef}.timeline-step{position:relative;display:flex;gap:13px;align-items:flex-start;padding:0 0 18px}.timeline-dot{position:relative;z-index:1;width:22px;height:22px;flex:0 0 22px;border-radius:50%;background:#eaf2f8;border:3px solid #fff;box-shadow:0 0 0 1px #cbdce8;display:grid;place-items:center;font-size:10px;color:#718396;font-weight:900}.timeline-step.done .timeline-dot{background:#168447;color:#fff;box-shadow:0 0 0 1px #168447}.timeline-step.current .timeline-dot{background:#0878c9;color:#fff;box-shadow:0 0 0 4px #dceffc}.timeline-step b{font-size:12px}.timeline-step small{display:block;color:#718396;margin-top:3px;font-size:10px}.tracking-hero{padding:15px;border-radius:13px;background:linear-gradient(135deg,#f5fbff,#fff);border:1px solid #d9eaf6;margin-bottom:18px}.tracking-hero strong{display:block;font-size:11px;color:#718396;text-transform:uppercase}.tracking-hero span{display:block;margin-top:4px;font-size:22px;font-weight:950;color:#0758b7}
+@media(max-width:600px){.timeline-step{padding-bottom:15px}.tracking-hero span{font-size:18px}}
+</style>
+<script>
+(function(){
+ const result=document.getElementById('result');if(!result)return;
+ const originalObserver=new MutationObserver(()=>enhance());
+ originalObserver.observe(result,{childList:true,subtree:true});
+ function enhance(){
+   const statusEl=result.querySelector('.status');if(!statusEl||result.querySelector('.timeline'))return;
+   const raw=(statusEl.textContent||'').toLowerCase();
+   const idx=raw.includes('final')?3:raw.includes('anal')?2:1;
+   const labels=[['Cotação criada','Registro recebido pelo sistema.'],['Em análise','Dados disponíveis para conferência.'],['Em processamento','Acompanhamento operacional.'],['Finalizada','Cotação concluída.']];
+   const tl=document.createElement('div');tl.className='timeline';
+   tl.innerHTML=labels.map((x,i)=>'<div class="timeline-step '+(i<idx?'done ':'')+(i===idx?'current':'')+'"><span class="timeline-dot">'+(i<idx?'✓':i+1)+'</span><div><b>'+x[0]+'</b><small>'+x[1]+'</small></div></div>').join('');
+   const hero=document.createElement('div');hero.className='tracking-hero';hero.innerHTML='<strong>Status atual</strong><span>'+((statusEl.textContent||'').trim())+'</span>';
+   result.insertBefore(hero,result.firstChild);result.insertBefore(tl,hero.nextSibling);
+ }
+ window.addEventListener('load',()=>setTimeout(enhance,250));
+})();
+</script>
