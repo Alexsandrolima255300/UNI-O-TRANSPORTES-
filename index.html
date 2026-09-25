@@ -121,3 +121,10 @@ window.addEventListener('message',e=>{
 </script>
 </body>
 </html>
+
+<style id="UE_LOGIN_UPGRADES_V2">
+.login-screen::before{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle at 20% 20%,rgba(255,255,255,.13),transparent 35%),radial-gradient(circle at 80% 80%,rgba(0,0,0,.10),transparent 35%)}
+.login-card{position:relative;overflow:hidden}.login-card::after{content:"";position:absolute;top:0;left:-120%;width:55%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.55),transparent);transform:skewX(-16deg);animation:ueLoginSweep 1.4s .35s ease both;pointer-events:none}
+.login-button{transition:transform .18s ease,box-shadow .18s ease}.login-button:hover{transform:translateY(-2px);box-shadow:0 10px 20px rgba(0,91,168,.22)}
+@keyframes ueLoginSweep{to{left:150%}}
+</style>
