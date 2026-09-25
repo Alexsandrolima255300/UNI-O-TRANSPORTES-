@@ -627,6 +627,7 @@ const nfInput=document.getElementById('nf');if(nfInput){nfInput.addEventListener
       if(!r.ok)throw new Error('CNPJ não encontrado');
       const data=await r.json();
       const company=data.razao_social||data.nome_fantasia||'Empresa localizada';
+      input.dataset.companyName=company;
       const address=[data.logradouro,data.numero,data.bairro,data.municipio&&data.uf?(data.municipio+' - '+data.uf):'',data.cep].filter(Boolean).join(', ');
 
       if(type==='origin'){
@@ -997,8 +998,8 @@ header .logo{width:495px!important;height:94px!important;max-height:94px!importa
     const destination=document.getElementById('dest');
     const selected=destination?.selectedOptions?.[0];
     const origin=document.getElementById('originAuto')?.value||'Uberaba - MG';
-    const originCompany=document.querySelector('#cnpjOrigemStatus b')?.textContent?.trim()||'';
-    const destinationCompany=document.querySelector('#cnpjDestinatarioStatus b')?.textContent?.trim()||'';
+    const originCompany=document.getElementById('cnpjOrigem')?.dataset.companyName||document.querySelector('#cnpjOrigemStatus b')?.textContent?.trim()||'';
+    const destinationCompany=document.getElementById('cnpjDestinatario')?.dataset.companyName||document.querySelector('#cnpjDestinatarioStatus b')?.textContent?.trim()||'';
     const originCnpj=(document.getElementById('cnpjOrigem')?.value||'').trim()||null;
     const destinationCnpj=(document.getElementById('cnpjDestinatario')?.value||'').trim()||null;
     const payload={
