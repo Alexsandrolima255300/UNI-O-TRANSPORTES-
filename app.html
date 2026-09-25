@@ -657,12 +657,31 @@ const nfInput=document.getElementById('nf');if(nfInput){nfInput.addEventListener
     }
   }
 
+  // Mantém o nome da empresa sincronizado mesmo quando o usuário
+  // clica em "Calcular" imediatamente após preencher o CNPJ.
+  window.UE_CNPJ_LOOKUP = lookupCnpj;
+  window.UE_CNPJ_LOOKUPS = window.UE_CNPJ_LOOKUPS || {};
+
   ['cnpjOrigem','cnpjDestinatario'].forEach(id=>{
     const el=document.getElementById(id);
-    el.addEventListener('input',()=>{formatCnpj(el);});
+    el.addEventListener('input',()=>{
+      formatCnpj(el);
+      // O CNPJ mudou: o nome anterior não pode ser reutilizado.
+      delete el.dataset.companyName;
+      window.UE_CNPJ_LOOKUPS[id]=null;
+    });
   });
-  document.getElementById('cnpjOrigem').addEventListener('blur',()=>lookupCnpj('cnpjOrigem','origin'));
-  document.getElementById('cnpjDestinatario').addEventListener('blur',()=>lookupCnpj('cnpjDestinatario','destination'));
+
+  document.getElementById('cnpjOrigem').addEventListener('blur',()=>{
+    const p=lookupCnpj('cnpjOrigem','origin');
+    window.UE_CNPJ_LOOKUPS.cnpjOrigem=p;
+    return p;
+  });
+  document.getElementById('cnpjDestinatario').addEventListener('blur',()=>{
+    const p=lookupCnpj('cnpjDestinatario','destination');
+    window.UE_CNPJ_LOOKUPS.cnpjDestinatario=p;
+    return p;
+  });
 
   /* Compatibilidade: se algum código antigo procurar #cnpj, usa o destinatário. */
   const oldCnpj=document.getElementById('cnpj');
@@ -994,6 +1013,31 @@ header .logo{width:495px!important;height:94px!important;max-height:94px!importa
   async function saveQuote(code){
     const res=document.getElementById('res');
     if(!res?.classList.contains('show')) return;
+
+    // Se o usuário calculou logo após preencher o CNPJ, o blur pode
+    // ainda estar consultando a BrasilAPI. Aguarda essa consulta antes
+    // de montar o payload, evitando salvar a empresa de origem como null.
+    const lookupCnpj=window.UE_CNPJ_LOOKUP;
+    const pending=window.UE_CNPJ_LOOKUPS||{};
+    for(const [id,type] of [['cnpjOrigem','origin'],['cnpjDestinatario','destination']]){
+      const input=document.getElementById(id);
+      if(!input) continue;
+      const digits=(input.value||'').replace(/\\D/g,'');
+      if(digits.length!==14) continue;
+      try{
+        if(pending[id] && typeof pending[id].then==='function'){
+          await pending[id];
+        }
+        if(!input.dataset.companyName && typeof lookupCnpj==='function'){
+          const p=lookupCnpj(id,type);
+          pending[id]=p;
+          await p;
+        }
+      }catch(error){
+        console.warn('[UNI-O] Consulta de CNPJ não concluída:',id,error);
+      }
+    }
+
     const {data:{user}}=await quoteClient.auth.getUser();
     const destination=document.getElementById('dest');
     const selected=destination?.selectedOptions?.[0];
