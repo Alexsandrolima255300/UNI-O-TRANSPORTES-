@@ -336,3 +336,45 @@ document.addEventListener('DOMContentLoaded',()=>renderQuoteChart('6m'));
 })();
 </script>
 </body></html>
+<style id="UE_ADMIN_UPGRADES_V2">
+/* ===== ADM upgrades — visual/analytics only ===== */
+.ue-live-strip{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:0 0 18px}
+.ue-live-item{background:#fff;border:1px solid #dce5ed;border-radius:12px;padding:12px 14px;box-shadow:0 5px 18px rgba(23,50,77,.045)}
+.ue-live-item small{display:block;color:#718396;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.04em}
+.ue-live-item b{display:block;margin-top:5px;font-size:18px;color:#10233f}
+.ue-live-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#168447;box-shadow:0 0 0 4px #eaf8f0;margin-right:7px}
+.ue-qcard{transition:transform .2s ease,box-shadow .2s ease}.ue-qcard:hover{transform:translateY(-3px);box-shadow:0 12px 25px rgba(23,50,77,.10)}
+.ue-qnum{transition:transform .35s ease}
+.ue-chart-section{animation:ueAdmIn .45s ease both}
+@keyframes ueAdmIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@media(max-width:800px){.ue-live-strip{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:520px){.ue-live-strip{grid-template-columns:1fr}}
+</style>
+<script>
+/* UE_ADMIN_RUNTIME_V2 — adds live operational indicators without changing data/calculation */
+(function(){
+ function addLive(){
+   const dash=document.getElementById('dashboard');if(!dash||document.getElementById('ueLiveStrip'))return;
+   const strip=document.createElement('div');strip.id='ueLiveStrip';strip.className='ue-live-strip';
+   strip.innerHTML='<div class="ue-live-item"><small><span class="ue-live-dot"></span>Status</small><b>Sistema online</b></div><div class="ue-live-item"><small>Cotações exibidas</small><b id="ueLiveQuotes">0</b></div><div class="ue-live-item"><small>Clientes</small><b id="ueLiveClients">0</b></div><div class="ue-live-item"><small>Atualização</small><b id="ueLiveTime">agora</b></div>';
+   dash.prepend(strip);
+ }
+ function sync(){
+   addLive();
+   const rows=document.querySelectorAll('#ueQBody tr');
+   const q=document.getElementById('ueLiveQuotes');if(q)q.textContent=rows.length;
+   const clients=document.getElementById('ueQ4');const c=document.getElementById('ueLiveClients');if(c&&clients)c.textContent=clients.textContent||'0';
+   const t=document.getElementById('ueLiveTime');if(t)t.textContent=new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+ }
+ function countUp(){
+   document.querySelectorAll('.ue-qnum').forEach(el=>{
+     if(el.dataset.counted)return; const target=parseInt(el.textContent||'0',10);if(!Number.isFinite(target))return;
+     el.dataset.counted='1';el.textContent='0';let n=0,steps=16;const timer=setInterval(()=>{n+=Math.ceil(target/steps);if(n>=target){n=target;clearInterval(timer)}el.textContent=n},35);
+   });
+ }
+ function init(){addLive();sync();countUp();setTimeout(sync,1000);setTimeout(sync,2500)}
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
+ const observer=new MutationObserver(()=>{addLive();sync()});
+ setTimeout(()=>observer.observe(document.body,{childList:true,subtree:true}),1200);
+})();
+</script>
