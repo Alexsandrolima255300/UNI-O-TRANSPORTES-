@@ -998,10 +998,17 @@ header .logo{width:495px!important;height:94px!important;max-height:94px!importa
     const selected=destination?.selectedOptions?.[0];
     const origin=document.getElementById('originAuto')?.value||'Uberaba - MG';
     const originCompany=document.querySelector('#cnpjOrigemStatus b')?.textContent?.trim()||'';
+    const destinationCompany=document.querySelector('#cnpjDestinatarioStatus b')?.textContent?.trim()||'';
+    const originCnpj=(document.getElementById('cnpjOrigem')?.value||'').trim()||null;
+    const destinationCnpj=(document.getElementById('cnpjDestinatario')?.value||'').trim()||null;
     const payload={
       codigo_cotacao:code,
       nome:user?.user_metadata?.full_name||user?.user_metadata?.name||window.UE_CURRENT_USER?.profile?.full_name||user?.email?.split('@')[0]||null,
       empresa:originCompany||null,
+      empresa_origem:originCompany||null,
+      empresa_destino:destinationCompany||null,
+      cnpj_origem:originCnpj,
+      cnpj_destino:destinationCnpj,
       telefone:user?.phone||null,
       email:user?.email||null,
       origem:origin,
