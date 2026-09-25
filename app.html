@@ -740,7 +740,7 @@ const nfInput=document.getElementById('nf');if(nfInput){nfInput.addEventListener
     }
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind);else bind();
-  setTimeout(bind,100);setTimeout(bind,500);setInterval(bind,1000);
+  setTimeout(bind,100);setTimeout(bind,500);
 })();
 </script>
 <script>
@@ -1195,6 +1195,5 @@ function observeResult(){
 }
 function init(){enhanceForm();enhanceCnpj();observeResult();updateProgress();}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
-setTimeout(init,700);setTimeout(init,1800);
 })();
 </script>
