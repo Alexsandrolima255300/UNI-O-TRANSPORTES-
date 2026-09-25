@@ -854,6 +854,19 @@ header .logo{width:495px!important;height:94px!important;max-height:94px!importa
 })();
 </script>
 <style>
+#quoteTrackingCode{display:none;margin-top:14px;padding:14px;border:1px solid #cfe2ef;background:#fff;border-radius:8px;color:#17324d;font-size:12px;line-height:1.5}
+#quoteTrackingCode strong{display:block;color:#006fba;font-size:14px;margin-bottom:3px}
+#quoteQrPanel{display:none;margin-top:10px;padding:14px;border:1px solid #cfe2ef;background:#fff;border-radius:8px;align-items:center;gap:14px}
+#quoteQrPanel.show{display:flex}
+#quoteQrCode{width:140px;min-width:140px;height:140px;display:flex;align-items:center;justify-content:center;background:#fff}
+#quoteQrCode img,#quoteQrCode canvas{display:block;max-width:140px!important;max-height:140px!important}
+#quoteQrPanel .qr-copy{display:flex;flex-direction:column;gap:5px;font-size:11px;color:#64778b}
+#quoteQrPanel .qr-copy strong{color:#006fba;font-size:13px}
+.ue-pdf-qr{display:flex;align-items:center;gap:16px;border:1px solid #cfe5f5;background:#f7fbfe;border-radius:10px;padding:14px 16px;margin:18px 0}
+.ue-pdf-qr img{width:130px;height:130px;object-fit:contain;background:#fff}
+.ue-pdf-qr-copy{display:flex;flex-direction:column;gap:5px;font-size:11px;color:#64778b}
+.ue-pdf-qr-copy strong{font-size:13px;color:#006fba}
+@media(max-width:600px){#quoteQrPanel{flex-direction:column;align-items:flex-start}.ue-pdf-qr{flex-direction:column;align-items:flex-start}}
 /* PDF_COTACAO_UNIAO_V1 */
 @media print{
   @page{size:A4;margin:12mm}
@@ -920,7 +933,7 @@ header .logo{width:495px!important;height:94px!important;max-height:94px!importa
       '<div class="ue-pdf-title"><small>Cotação de frete</small><strong>UNIÃO EXPRESS</strong></div></div>'+
       '<div class="ue-pdf-total"><span>Frete estimado</span><b>'+esc(txt('total'))+'</b></div>'+
       '<div class="ue-pdf-route"><small>Origem e destino</small><strong>'+esc(origin)+' → '+esc(city)+' / '+esc(state)+'</strong><div>'+esc(policy)+'</div></div>'+
-      (getQrDataUrl(getQuoteCode())?'<div class="ue-pdf-qr"><img src="'+getQrDataUrl(getQuoteCode())+'" alt="QR Code da cotação"><div class="ue-pdf-qr-copy"><strong>Consultar cotação</strong><span>Código: '+esc(getQuoteCode())+'</span><span>Escaneie o QR Code para abrir o rastreamento.</span></div></div>':'')+
+      (function(){const code=getQuoteCode();const qr=getQrDataUrl(code);return '<div class="ue-pdf-qr">'+(qr?'<img src="'+qr+'" alt="QR Code da cotação">':'<div style="width:130px;height:130px;display:flex;align-items:center;justify-content:center;border:1px dashed #b9c9d6;font-size:10px;text-align:center">QR Code indisponível</div>')+'<div class="ue-pdf-qr-copy"><strong>Consultar cotação</strong><span>Código: '+esc(code||'Não gerado')+'</span><span>Escaneie o QR Code para abrir o rastreamento.</span></div></div>'})()+
       '<div class="ue-pdf-section">Prazo de entrega</div><div class="ue-pdf-line"><span>Prazo</span><b>'+esc(prazo||'Conforme tabela')+'</b></div>'+
       '<div class="ue-pdf-section">Composição da cotação</div><div class="ue-pdf-grid">'+
       rows.map(r=>'<div class="ue-pdf-line"><span>'+esc(r[0])+'</span><b>'+esc(r[1])+'</b></div>').join('')+
@@ -945,12 +958,33 @@ header .logo{width:495px!important;height:94px!important;max-height:94px!importa
   function textOf(id){return document.getElementById(id)?.textContent?.trim()||''}
   function num(id){const v=(document.getElementById(id)?.value||'').replace(/[^0-9,.-]/g,'').replace(/\./g,'').replace(',','.');const n=Number(v);return Number.isFinite(n)?n:null}
   function quoteCode(){const now=new Date();const date=String(now.getFullYear()).slice(-2)+String(now.getMonth()+1).padStart(2,'0')+String(now.getDate()).padStart(2,'0');const suffix=(window.crypto?.randomUUID?.()||Math.random().toString(36).slice(2)+Date.now().toString(36)).replace(/[^a-z0-9]/gi,'').slice(-8).toUpperCase();return 'UE-'+date+'-'+suffix}
-  function showQuoteCode(code){let box=document.getElementById('quoteTrackingCode');if(!box){box=document.createElement('div');box.id='quoteTrackingCode';box.style='margin-top:12px;padding:13px 14px;border:1px solid #cfe2ef;background:#f7fbfe;border-radius:7px;color:#17324d;font-size:12px;line-height:1.45';const alert=document.getElementById('quoteSuccessAlert');const res=document.getElementById('res');if(alert?.parentNode)alert.parentNode.insertBefore(box,alert.nextSibling);else if(res?.parentNode)res.parentNode.insertBefore(box,res.nextSibling);else document.body.appendChild(box)}box.dataset.code=code;box.innerHTML='<strong style="display:block;color:#006fba;font-size:13px">Código da cotação: '+code+'</strong><span>Guarde este código para acompanhar e localizar esta cotação no sistema.</span>';box.style.display='block';
+  function showQuoteCode(code){
+    const res=document.getElementById('res');
+    if(!res) return;
+    let box=document.getElementById('quoteTrackingCode');
+    if(!box){
+      box=document.createElement('div');
+      box.id='quoteTrackingCode';
+      res.appendChild(box);
+    }
+    box.dataset.code=code;
+    box.innerHTML='<strong>Código da cotação: '+code+'</strong><span>Guarde este código para acompanhar e localizar esta cotação no sistema.</span>';
+    box.style.display='block';
     let qr=document.getElementById('quoteQrPanel');
-    if(!qr){qr=document.createElement('div');qr.id='quoteQrPanel';qr.innerHTML='<div id="quoteQrCode"></div><div class="qr-copy"><strong>QR Code da cotação</strong><span>Escaneie para consultar esta cotação pelo código de rastreamento.</span></div>';box.parentNode.insertBefore(qr,box.nextSibling)}
-    const qrCode=qr.querySelector('#quoteQrCode');qrCode.innerHTML='';
-    if(typeof QRCode!=='undefined'){new QRCode(qrCode,{text:location.origin+'/rastrear.html?codigo='+encodeURIComponent(code),width:120,height:120,correctLevel:QRCode.CorrectLevel.M});}
-    qr.classList.add('show')}
+    if(!qr){
+      qr=document.createElement('div');
+      qr.id='quoteQrPanel';
+      res.appendChild(qr);
+    }
+    qr.innerHTML='<div id="quoteQrCode"></div><div class="qr-copy"><strong>QR Code da cotação</strong><span>Escaneie para consultar esta cotação pelo código de rastreamento.</span></div>';
+    const qrCode=qr.querySelector('#quoteQrCode');
+    if(typeof QRCode!=='undefined'){
+      new QRCode(qrCode,{text:location.origin+'/rastrear.html?codigo='+encodeURIComponent(code),width:140,height:140,correctLevel:QRCode.CorrectLevel.M});
+    }else{
+      qrCode.innerHTML='<span style="font-size:11px;color:#b42318">QR Code indisponível no momento.</span>';
+    }
+    qr.classList.add('show');
+  }
   async function saveQuote(code){
     const res=document.getElementById('res');
     if(!res?.classList.contains('show')) return;
