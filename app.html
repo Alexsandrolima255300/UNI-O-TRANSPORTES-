@@ -880,6 +880,19 @@ header .logo{width:495px!important;height:94px!important;max-height:94px!importa
   function txt(id){const e=document.getElementById(id);return e?e.textContent.trim():'R$ 0,00'}
   function money(v){return v&&v.trim()?v.trim():'R$ 0,00'}
   function esc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+  function getQuoteCode(){return document.getElementById('quoteTrackingCode')?.dataset?.code||''}
+  function getQrDataUrl(code){
+    if(!code||typeof QRCode==='undefined')return '';
+    const holder=document.createElement('div');
+    holder.style.cssText='position:absolute;left:-99999px;top:-99999px;width:180px;height:180px';
+    document.body.appendChild(holder);
+    try{
+      new QRCode(holder,{text:location.origin+'/rastrear.html?codigo='+encodeURIComponent(code),width:180,height:180,correctLevel:QRCode.CorrectLevel.M});
+      const canvas=holder.querySelector('canvas'),img=holder.querySelector('img');
+      const data=canvas?canvas.toDataURL('image/png'):(img?.src||'');
+      holder.remove(); return data;
+    }catch(e){holder.remove();return ''}
+  }
   function buildPdf(){
     let box=document.getElementById('uePdfQuote');
     if(!box){box=document.createElement('div');box.id='uePdfQuote';document.body.appendChild(box)}
@@ -907,6 +920,7 @@ header .logo{width:495px!important;height:94px!important;max-height:94px!importa
       '<div class="ue-pdf-title"><small>Cotação de frete</small><strong>UNIÃO EXPRESS</strong></div></div>'+
       '<div class="ue-pdf-total"><span>Frete estimado</span><b>'+esc(txt('total'))+'</b></div>'+
       '<div class="ue-pdf-route"><small>Origem e destino</small><strong>'+esc(origin)+' → '+esc(city)+' / '+esc(state)+'</strong><div>'+esc(policy)+'</div></div>'+
+      (getQrDataUrl(getQuoteCode())?'<div class="ue-pdf-qr"><img src="'+getQrDataUrl(getQuoteCode())+'" alt="QR Code da cotação"><div class="ue-pdf-qr-copy"><strong>Consultar cotação</strong><span>Código: '+esc(getQuoteCode())+'</span><span>Escaneie o QR Code para abrir o rastreamento.</span></div></div>':'')+
       '<div class="ue-pdf-section">Prazo de entrega</div><div class="ue-pdf-line"><span>Prazo</span><b>'+esc(prazo||'Conforme tabela')+'</b></div>'+
       '<div class="ue-pdf-section">Composição da cotação</div><div class="ue-pdf-grid">'+
       rows.map(r=>'<div class="ue-pdf-line"><span>'+esc(r[0])+'</span><b>'+esc(r[1])+'</b></div>').join('')+
@@ -931,7 +945,12 @@ header .logo{width:495px!important;height:94px!important;max-height:94px!importa
   function textOf(id){return document.getElementById(id)?.textContent?.trim()||''}
   function num(id){const v=(document.getElementById(id)?.value||'').replace(/[^0-9,.-]/g,'').replace(/\./g,'').replace(',','.');const n=Number(v);return Number.isFinite(n)?n:null}
   function quoteCode(){const now=new Date();const date=String(now.getFullYear()).slice(-2)+String(now.getMonth()+1).padStart(2,'0')+String(now.getDate()).padStart(2,'0');const suffix=(window.crypto?.randomUUID?.()||Math.random().toString(36).slice(2)+Date.now().toString(36)).replace(/[^a-z0-9]/gi,'').slice(-8).toUpperCase();return 'UE-'+date+'-'+suffix}
-  function showQuoteCode(code){let box=document.getElementById('quoteTrackingCode');if(!box){box=document.createElement('div');box.id='quoteTrackingCode';box.style='margin-top:12px;padding:13px 14px;border:1px solid #cfe2ef;background:#f7fbfe;border-radius:7px;color:#17324d;font-size:12px;line-height:1.45';const alert=document.getElementById('quoteSuccessAlert');if(alert?.parentNode)alert.parentNode.insertBefore(box,alert.nextSibling)}box.innerHTML='<strong style="display:block;color:#006fba;font-size:13px">Código da cotação: '+code+'</strong><span>Guarde este código para acompanhar e localizar esta cotação no sistema.</span>';box.style.display='block'}
+  function showQuoteCode(code){let box=document.getElementById('quoteTrackingCode');if(!box){box=document.createElement('div');box.id='quoteTrackingCode';box.style='margin-top:12px;padding:13px 14px;border:1px solid #cfe2ef;background:#f7fbfe;border-radius:7px;color:#17324d;font-size:12px;line-height:1.45';const alert=document.getElementById('quoteSuccessAlert');if(alert?.parentNode)alert.parentNode.insertBefore(box,alert.nextSibling)}box.dataset.code=code;box.innerHTML='<strong style="display:block;color:#006fba;font-size:13px">Código da cotação: '+code+'</strong><span>Guarde este código para acompanhar e localizar esta cotação no sistema.</span>';box.style.display='block';
+    let qr=document.getElementById('quoteQrPanel');
+    if(!qr){qr=document.createElement('div');qr.id='quoteQrPanel';qr.innerHTML='<div id="quoteQrCode"></div><div class="qr-copy"><strong>QR Code da cotação</strong><span>Escaneie para consultar esta cotação pelo código de rastreamento.</span></div>';box.parentNode.insertBefore(qr,box.nextSibling)}
+    const qrCode=qr.querySelector('#quoteQrCode');qrCode.innerHTML='';
+    if(typeof QRCode!=='undefined'){new QRCode(qrCode,{text:location.origin+'/rastrear.html?codigo='+encodeURIComponent(code),width:120,height:120,correctLevel:QRCode.CorrectLevel.M});}
+    qr.classList.add('show')}
   async function saveQuote(){
     const res=document.getElementById('res');if(!res?.classList.contains('show'))return;
     const {data:{user}}=await quoteClient.auth.getUser();
