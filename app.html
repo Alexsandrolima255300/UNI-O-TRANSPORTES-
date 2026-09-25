@@ -870,7 +870,7 @@ header .logo{width:495px!important;height:94px!important;max-height:94px!importa
 /* PDF_COTACAO_UNIAO_V1 */
 @media print{
   @page{size:A4;margin:12mm}
-  html,body{background:#fff!important}
+  html,body{background:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
   body>*{display:none!important}
   #uePdfQuote{display:block!important}
 }
@@ -927,7 +927,7 @@ header .logo{width:495px!important;height:94px!important;max-height:94px!importa
       ['Cubagem',money(txt('cubagemM3'))],
       ['Peso cubado (300 kg/m³)',money(txt('pesoCubado'))]
     ];
-    const logo='https://raw.githubusercontent.com/Alexsandrolima255300/UNI-O-TRANSPORTES-/main/323dcaad-7aad-4160-b53b-adee97d0db40.png';
+    const logo=new URL('323dcaad-7aad-4160-b53b-adee97d0db40.png',location.href).href;
     box.innerHTML='<div class="ue-pdf"><div class="ue-pdf-head">'+
       '<img class="ue-pdf-logo" src="'+esc(logo)+'" alt="União Express">'+
       '<div class="ue-pdf-title"><small>Cotação de frete</small><strong>UNIÃO EXPRESS</strong></div></div>'+
@@ -939,11 +939,16 @@ header .logo{width:495px!important;height:94px!important;max-height:94px!importa
       rows.map(r=>'<div class="ue-pdf-line"><span>'+esc(r[0])+'</span><b>'+esc(r[1])+'</b></div>').join('')+
       '</div><div class="ue-pdf-foot">Valor estimado sujeito às condições da tabela de frete vigente.</div></div>';
   }
-  window.printQ=function(){
+  window.printQ=async function(){
     const res=document.getElementById('res');
     if(!res||!res.classList.contains('show')){alert('Calcule uma cotação antes de imprimir.');return}
     buildPdf();
-    setTimeout(()=>window.print(),80);
+    const logo=document.querySelector('#uePdfQuote .ue-pdf-logo');
+    if(logo && !logo.complete){
+      await new Promise(resolve=>{logo.addEventListener('load',resolve,{once:true});logo.addEventListener('error',resolve,{once:true});setTimeout(resolve,1500);});
+    }
+    if(document.fonts?.ready) await document.fonts.ready.catch(()=>{});
+    setTimeout(()=>window.print(),120);
   };
 })();
 </script>
