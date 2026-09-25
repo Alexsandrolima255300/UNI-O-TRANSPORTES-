@@ -44,7 +44,11 @@ async function buscar(){
  '<div class="item"><small>Data</small><b>'+date(c.created_at)+'</b></div>'+
  '<div class="item"><small>Validade do registro</small><b>'+date(c.expires_at)+'</b></div>'+
  '<div class="item"><small>Origem</small><b>'+esc(c.origem)+'</b></div>'+
+ '<div class="item"><small>Empresa de origem</small><b>'+esc(c.empresa_origem||'Não informado')+'</b></div>'+
+ '<div class="item"><small>CNPJ de origem</small><b>'+esc(c.cnpj_origem||'Não informado')+'</b></div>'+
  '<div class="item"><small>Destino</small><b>'+esc(c.destino)+'</b></div>'+
+ '<div class="item"><small>Empresa de destino</small><b>'+esc(c.empresa_destino||'Não informado')+'</b></div>'+
+ '<div class="item"><small>CNPJ de destino</small><b>'+esc(c.cnpj_destino||'Não informado')+'</b></div>'+
  '<div class="item"><small>Peso</small><b>'+esc(c.peso??'—')+' kg</b></div>'+
  '<div class="item"><small>Valor da NF</small><b>'+money(c.valor_nf)+'</b></div>'+
  '<div class="item"><small>Valor da cotação</small><b>'+money(c.valor_cotacao)+'</b></div>'+
