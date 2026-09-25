@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Rastreamento de Cotação — União Express</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+body{margin:0;background:#f5f7f9;color:#17324d;font-family:Inter,Arial,sans-serif}
+.wrap{max-width:760px;margin:0 auto;padding:36px 18px}
+.card{background:#fff;border:1px solid #dce4eb;border-radius:10px;padding:26px;box-shadow:0 8px 30px #17324d10}
+.logo{width:230px;max-height:80px;object-fit:contain;display:block;margin:0 auto 20px}
+h1{font-size:25px;text-align:center;margin:0 0 6px}.sub{text-align:center;color:#718396;font-size:13px;margin-bottom:24px}
+.search{display:flex;gap:8px}.search input{flex:1;padding:13px;border:1px solid #cfd9e2;border-radius:6px;font-size:15px}.search button{padding:13px 18px;border:0;border-radius:6px;background:#006fba;color:#fff;font-weight:800;cursor:pointer}
+#msg{margin-top:14px;color:#64778b;font-size:12px;text-align:center}.result{display:none;margin-top:22px;border-top:1px solid #e1e7ec;padding-top:20px}.code{text-align:center;color:#006fba;font-size:20px;font-weight:900;margin-bottom:16px}
+.grid{display:grid;grid-template-columns:1fr 1fr;border:1px solid #dce5ec;border-radius:8px;overflow:hidden}.item{padding:11px 13px;border-bottom:1px solid #e8edf1}.item:nth-child(odd){background:#f8fafc}.item small{display:block;color:#718396;font-size:10px;text-transform:uppercase}.item b{display:block;margin-top:4px;font-size:13px}.status{text-align:center;margin:0 auto 18px;padding:9px 13px;border-radius:99px;background:#eef7fd;color:#006fba;font-size:12px;font-weight:900;width:max-content;max-width:100%}
+@media(max-width:600px){.wrap{padding:20px 10px}.card{padding:18px}.search{flex-direction:column}.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap"><div class="card">
+<img class="logo" src="https://raw.githubusercontent.com/Alexsandrolima255300/UNI-O-TRANSPORTES-/main/323dcaad-7aad-4160-b53b-adee97d0db40.png" alt="União Express">
+<h1>Rastreamento da cotação</h1>
+<div class="sub">Digite o código da cotação para consultar os dados registrados.</div>
+<div class="search"><input id="codigo" placeholder="Ex.: UE-260925-A8F42K91" autocomplete="off"><button id="buscar">Consultar</button></div>
+<div id="msg"></div>
+<div id="result" class="result"></div>
+</div></div>
+<script>
+const client=supabase.createClient('https://rejyergahvzabyerhjhy.supabase.co','sb_publishable_A5oVTI7f-c-M1260_Mq1oA_Y2s0J6E8');
+const esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+const money=v=>v==null?'—':Number(v).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+const date=v=>v?new Date(v).toLocaleString('pt-BR'):'—';
+async function buscar(){
+ const code=document.getElementById('codigo').value.trim().toUpperCase(),msg=document.getElementById('msg'),box=document.getElementById('result');
+ box.style.display='none';
+ if(!code){msg.textContent='Informe o código da cotação.';return}
+ msg.textContent='Consultando...';
+ const {data,error}=await client.rpc('get_cotacao_rastreamento',{p_codigo:code});
+ if(error||!data?.length){msg.textContent='Cotação não encontrada. Confira o código e tente novamente.';return}
+ const c=data[0];
+ msg.textContent='';
+ box.innerHTML='<div class="code">'+esc(c.codigo_cotacao)+'</div><div class="status">'+esc(c.status||'nova').toUpperCase()+'</div><div class="grid">'+
+ '<div class="item"><small>Data</small><b>'+date(c.created_at)+'</b></div>'+
+ '<div class="item"><small>Validade do registro</small><b>'+date(c.expires_at)+'</b></div>'+
+ '<div class="item"><small>Origem</small><b>'+esc(c.origem)+'</b></div>'+
+ '<div class="item"><small>Destino</small><b>'+esc(c.destino)+'</b></div>'+
+ '<div class="item"><small>Peso</small><b>'+esc(c.peso??'—')+' kg</b></div>'+
+ '<div class="item"><small>Valor da NF</small><b>'+money(c.valor_nf)+'</b></div>'+
+ '<div class="item"><small>Valor da cotação</small><b>'+money(c.valor_cotacao)+'</b></div>'+
+ '</div>';
+ box.style.display='block';
+}
+document.getElementById('buscar').onclick=buscar;
+document.getElementById('codigo').addEventListener('keydown',e=>{if(e.key==='Enter')buscar()});
+const q=new URLSearchParams(location.search).get('codigo');if(q){document.getElementById('codigo').value=q;buscar()}
+</script>
+</body></html>
