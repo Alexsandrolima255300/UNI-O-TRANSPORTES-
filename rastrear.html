@@ -67,10 +67,10 @@ const q=new URLSearchParams(location.search).get('codigo');if(q){document.getEle
 <script>
 (function(){
  const result=document.getElementById('result');if(!result)return;
- const originalObserver=new MutationObserver(()=>enhance());
- originalObserver.observe(result,{childList:true,subtree:true});
+ let originalObserver=null;
  function enhance(){
    const statusEl=result.querySelector('.status');if(!statusEl||result.querySelector('.timeline'))return;
+   if(originalObserver)originalObserver.disconnect();
    const raw=(statusEl.textContent||'').toLowerCase();
    const idx=raw.includes('final')?3:raw.includes('anal')?2:1;
    const labels=[['Cotação criada','Registro recebido pelo sistema.'],['Em análise','Dados disponíveis para conferência.'],['Em processamento','Acompanhamento operacional.'],['Finalizada','Cotação concluída.']];
@@ -79,6 +79,8 @@ const q=new URLSearchParams(location.search).get('codigo');if(q){document.getEle
    const hero=document.createElement('div');hero.className='tracking-hero';hero.innerHTML='<strong>Status atual</strong><span>'+((statusEl.textContent||'').trim())+'</span>';
    result.insertBefore(hero,result.firstChild);result.insertBefore(tl,hero.nextSibling);
  }
- window.addEventListener('load',()=>setTimeout(enhance,250));
+ originalObserver=new MutationObserver(enhance);
+ originalObserver.observe(result,{childList:true,subtree:true});
+ window.addEventListener('load',()=>setTimeout(enhance,250),{once:true});
 })();
 </script>
