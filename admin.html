@@ -467,9 +467,16 @@ function toast(message,type='ok'){
 function closeLegacyModal(){
  const m=document.getElementById('modal');if(m)m.classList.remove('show');
 }
-function companyOptions(){
- const list=Array.isArray(window.__UE_COMPANIES)?window.__UE_COMPANIES:[];
- return list.map(c=>'<option value="'+String(c.id).replace(/"/g,'&quot;')+'">'+esc(c.name)+'</option>').join('');
+async function companyOptions(){
+ let list=Array.isArray(window.__UE_COMPANIES)?window.__UE_COMPANIES:[];
+ if(!list.length){
+   const r=await SB.from('companies').select('id,name,status').order('name');
+   if(r.error) throw r.error;
+   list=r.data||[];
+   window.__UE_COMPANIES=list;
+ }
+ const active=list.filter(c=>c.status===undefined||c.status==='active');
+ return active.map(c=>'<option value="'+String(c.id).replace(/"/g,'&quot;')+'">'+esc(c.name)+'</option>').join('');
 }
 function esc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
 
@@ -478,13 +485,15 @@ async function openCleanUser(){
  let modal=document.getElementById('ueCleanUserModal');
  if(!modal){modal=document.createElement('div');modal.id='ueCleanUserModal';modal.className='modal';document.body.appendChild(modal)}
  modal.classList.add('show');
+ let companyOpts='';
+ try{companyOpts=await companyOptions();}catch(err){modal.classList.remove('show');toast('Não foi possível carregar as empresas: '+(err.message||'erro de conexão'),'err');return;}
  modal.innerHTML='<div class="modal-card ue-clean-modal">'+
  '<div class="ue-clean-head"><div class="ue-avatar">U</div><div><h2>Novo usuário cliente</h2><p>Crie um acesso real no Supabase e vincule o usuário a uma empresa já cadastrada.</p></div><button type="button" class="close" id="ueUserClose">Fechar</button></div>'+
  '<form id="ueCleanUserForm" class="ue-clean-form">'+
  '<div class="ue-field"><label>Nome completo</label><input name="full_name" required placeholder="Ex.: João da Silva"><small>Nome exibido no perfil do cliente.</small></div>'+
  '<div class="ue-field"><label>Usuário de login</label><input name="username" required autocomplete="username" placeholder="Ex.: JOAO.SILVA"><small>Use um identificador sem espaços.</small></div>'+
  '<div class="ue-field"><label>Senha</label><div class="ue-pass"><input name="password" id="ueNewPass" type="password" minlength="6" required autocomplete="new-password" placeholder="Mínimo 6 caracteres"><button type="button" id="ueTogglePass">Mostrar</button></div><small>Mínimo de 6 caracteres.</small></div>'+
- '<div class="ue-field"><label>Empresa</label><select name="company_id" required><option value="">Selecione a empresa...</option>'+companyOptions()+'</select><small>O acesso ficará vinculado a esta empresa.</small></div>'+
+ '<div class="ue-field"><label>Empresa</label><select name="company_id" required><option value="">Selecione a empresa...</option>'+companyOpts+'</select><small>O acesso ficará vinculado a esta empresa.</small></div>'+
  '<div class="ue-field full"><label>E-mail <span style="font-weight:600;color:#8a99a8">(opcional)</span></label><input name="email" type="email" placeholder="cliente@empresa.com"><small>Se ficar vazio, o sistema cria um e-mail interno para o Auth.</small></div>'+
  '<div class="ue-form-note">🔒 <b>Cadastro seguro:</b> a senha vai diretamente para o Supabase Auth. Ela não é salva em texto aberto no painel.</div>'+
  '<div class="ue-clean-actions"><button type="button" class="secondary" id="ueUserCancel">Cancelar</button><button class="primary" type="submit" id="ueUserSave">Criar usuário</button></div>'+
