@@ -335,6 +335,63 @@ document.addEventListener('DOMContentLoaded',()=>renderQuoteChart('6m'));
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();
 </script>
+
+<style>
+<!-- UE_COMPANY_BUILDER_V1 -->
+.ue-company-builder{width:min(980px,96vw)!important;max-height:92vh!important;overflow:auto!important;padding:0!important}
+.ue-company-builder .uecb-head{padding:24px 26px 18px;border-bottom:1px solid #e6edf4;display:flex;justify-content:space-between;gap:18px;align-items:flex-start}
+.ue-company-builder .uecb-head h2{margin:0;font-size:21px}
+.ue-company-builder .uecb-head p{margin:6px 0 0;color:#71839a;font-size:12px}
+.uecb-body{padding:22px 26px}
+.uecb-section{border:1px solid #e1eaf2;border-radius:15px;padding:17px;margin-bottom:15px;background:#fbfdff}
+.uecb-section h3{margin:0 0 13px;font-size:14px;color:#15304a}
+.uecb-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.uecb-grid .full{grid-column:1/-1}
+.uecb-grid label{display:grid;gap:6px;font-size:11px;font-weight:900;color:#344b63}
+.uecb-grid input,.uecb-grid select{width:100%;min-height:42px;border:1px solid #d5e0eb;border-radius:10px;padding:10px 11px;background:#fff;outline:0}
+.uecb-grid input:focus,.uecb-grid select:focus{border-color:#54a9df;box-shadow:0 0 0 3px rgba(8,120,201,.09)}
+.uecb-status{font-size:10px;font-weight:800;color:#71839a;min-height:14px}
+.uecb-rules-wrap{overflow:auto;border:1px solid #e1eaf2;border-radius:11px}
+.uecb-rules{width:1250px;border-collapse:collapse;font-size:10px}
+.uecb-rules th{background:#f5f8fb;color:#71839a;text-transform:uppercase;font-size:9px;padding:9px 7px;white-space:nowrap}
+.uecb-rules td{padding:6px;border-bottom:1px solid #edf2f6}
+.uecb-rules input{width:100%;min-width:82px;border:1px solid #d8e2ec;border-radius:7px;padding:7px;font-size:10px}
+.uecb-rule-actions{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:10px}
+.uecb-add{border:1px dashed #9fc7e3;background:#f5fbff;color:#0878c9;border-radius:9px;padding:9px 12px;font-weight:900;cursor:pointer}
+.uecb-remove{border:0;background:#fff0f0;color:#b33434;border-radius:7px;padding:7px 9px;font-weight:900;cursor:pointer}
+.uecb-footer{display:flex;justify-content:flex-end;gap:9px;padding:17px 26px;border-top:1px solid #e6edf4;background:#fbfdff}
+.uecb-footer button{min-width:140px}
+.uecb-saving{opacity:.65!important;pointer-events:none!important}
+@media(max-width:700px){.uecb-grid{grid-template-columns:1fr}.uecb-grid .full{grid-column:auto}.ue-company-builder .uecb-head,.uecb-body,.uecb-footer{padding-left:16px;padding-right:16px}.uecb-footer{flex-direction:column}.uecb-footer button{width:100%}}
+</style>
+<script>
+(function(){
+'use strict';
+const SUPA_URL='https://rejyergahvzabyerhjhy.supabase.co';
+const CREATE_COMPANY=SUPA_URL+'/functions/v1/admin-create-company';
+const esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+const digits=v=>String(v||'').replace(/\D/g,'');
+const maskCnpj=v=>digits(v).slice(0,14).replace(/^(\d{2})(\d)/,'$1.$2').replace(/^(\d{2})\.(\d{3})(\d)/,'$1.$2.$3').replace(/\.(\d{3})(\d)/,'$1.$2/$3').replace(/(\d{4})(\d)/,'$1-$2');
+const validCnpj=v=>{const d=digits(v);if(d.length!==14||/^([0-9])\1{13}$/.test(d))return false;let calc=(len)=>{let sum=0,pos=len-7;for(let i=0;i<len;i++){sum+=Number(d[i])*pos--;if(pos<2)pos=9}const x=11-(sum%11);return x>=10?0:x};return calc(12)===Number(d[12])&&calc(13)===Number(d[13])};
+function openBuilder(){
+ let modal=document.getElementById('ueCompanyBuilderModal');
+ if(!modal){modal=document.createElement('div');modal.id='ueCompanyBuilderModal';modal.className='modal';document.body.appendChild(modal);}
+ modal.classList.add('show');
+ modal.innerHTML='<div class="modal-card ue-company-builder"><div class="uecb-head"><div><h2>Nova empresa cliente</h2><p>Cadastre a empresa, crie o acesso real no Supabase e, se quiser, já deixe a tabela de frete configurada.</p></div><button type="button" class="close" id="uecbClose">Fechar</button></div><form id="uecbForm"><div class="uecb-body"><div class="uecb-section"><h3>1. Dados da empresa</h3><div class="uecb-grid"><label>CNPJ<input id="uecbCnpj" required maxlength="18" placeholder="00.000.000/0001-00" inputmode="numeric"><span id="uecbCnpjStatus" class="uecb-status">Digite um CNPJ válido para consultar.</span></label><label>Razão social<input id="uecbName" required placeholder="Nome da empresa"></label><label>Nome fantasia<input id="uecbTrade" placeholder="Nome fantasia"></label><label>Situação<select id="uecbStatus"><option value="active">Ativa</option><option value="inactive">Inativa</option></select></label><label>Transportadora<input id="uecbCarrier" value="União Express"></label><label>E-mail da empresa<input id="uecbEmail" type="email" placeholder="empresa@exemplo.com"></label></div></div><div class="uecb-section"><h3>2. Acesso do cliente — será criado de verdade no Supabase</h3><div class="uecb-grid"><label>Nome do usuário<input id="uecbFullName" required placeholder="Responsável pelo acesso"></label><label>Usuário de login<input id="uecbUsername" required placeholder="Ex.: BRASIL.ENGRENAGENS"></label><label>Senha<input id="uecbPassword" type="password" minlength="6" required placeholder="Mínimo de 6 caracteres"></label><label>Confirmar senha<input id="uecbPassword2" type="password" minlength="6" required placeholder="Repita a senha"></label><div class="full" style="font-size:10px;color:#71839a">A senha não será salva no painel. O Supabase Auth será responsável pelo login.</div></div></div><div class="uecb-section"><h3>3. Regras de cálculo da tabela do cliente</h3><div class="uecb-status" style="margin-bottom:10px">Você pode cadastrar uma ou várias faixas. Essas regras serão gravadas em <b>freight_tables</b> e <b>freight_rules</b> vinculadas ao usuário criado.</div><div class="uecb-rules-wrap"><table class="uecb-rules"><thead><tr><th>Origem</th><th>Destino</th><th>Região/UF</th><th>Peso mín.</th><th>Peso máx.</th><th>R$/kg</th><th>Fixo</th><th>% NF</th><th>Mínimo</th><th>Excesso/kg</th><th>Prazo</th><th>Fórmula</th><th></th></tr></thead><tbody id="uecbRules"></tbody></table></div><div class="uecb-rule-actions"><button type="button" class="uecb-add" id="uecbAddRule">+ Adicionar regra</button><span class="uecb-status">Pode deixar sem regras e importar/preencher depois.</span></div></div></div><div class="uecb-footer"><button type="button" class="secondary" id="uecbCancel">Cancelar</button><button class="primary" id="uecbSave" type="submit">Salvar empresa e criar acesso</button></div></form></div>';
+ const $=id=>modal.querySelector('#'+id);
+ const close=()=>modal.classList.remove('show');
+ $('uecbClose').onclick=close;$('uecbCancel').onclick=close;
+ const addRule=(data={})=>{const tr=document.createElement('tr');tr.innerHTML=['origin','destination','region','min_weight','max_weight','price_per_kg','fixed_price','nf_percentage','minimum_charge','excess_price_per_kg','prazo','formula'].map(k=>'<td><input data-rule="'+k+'" value="'+esc(data[k]||'')+'" placeholder="'+(k==='price_per_kg'?'0,00':'')+'"></td>').join('')+'<td><button type="button" class="uecb-remove">×</button></td>';tr.querySelector('.uecb-remove').onclick=()=>tr.remove();$('uecbRules').appendChild(tr);};
+ addRule();
+ const cnpj=$('uecbCnpj'),st=$('uecbCnpjStatus');let last='';
+ cnpj.addEventListener('input',async()=>{cnpj.value=maskCnpj(cnpj.value);const d=digits(cnpj.value);if(d.length!==14){st.textContent='Digite um CNPJ válido para consultar.';st.style.color='#71839a';return}if(!validCnpj(d)){st.textContent='CNPJ inválido.';st.style.color='#b33434';return}if(last===d)return;last=d;st.textContent='Consultando CNPJ...';st.style.color='#0878c9';try{const r=await fetch('https://brasilapi.com.br/api/cnpj/v1/'+d);if(!r.ok)throw Error();const x=await r.json();$('uecbName').value=x.razao_social||'';$('uecbTrade').value=x.nome_fantasia||'';$('uecbStatus').value=String(x.descricao_situacao_cadastral||'').toLowerCase().includes('ativa')?'active':'inactive';$('uecbEmail').value=x.email||'';st.textContent='✓ Empresa encontrada.';st.style.color='#20834a';if(!$('uecbFullName').value)$('uecbFullName').value=x.nome_fantasia||x.razao_social||'';if(!$('uecbUsername').value)$('uecbUsername').value=(x.nome_fantasia||x.razao_social||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().replace(/[^A-Z0-9]+/g,'.').replace(/^\.|\.$/g,'').slice(0,40)}catch(e){last='';st.textContent='Não foi possível consultar. Você pode preencher manualmente.';st.style.color='#b33434'}});
+ $('uecbAddRule').onclick=()=>addRule();
+ $('uecbForm').onsubmit=async e=>{e.preventDefault();const save=$('uecbSave');const p=$('uecbPassword').value,p2=$('uecbPassword2').value;if(p!==p2)return alert('As senhas não conferem.');if(p.length<6)return alert('A senha precisa ter no mínimo 6 caracteres.');if(!validCnpj($('uecbCnpj').value))return alert('Informe um CNPJ válido.');const rules=[...modal.querySelectorAll('#uecbRules tr')].map(tr=>Object.fromEntries([...tr.querySelectorAll('[data-rule]')].map(i=>[i.dataset.rule,i.value.trim()]))).filter(r=>Object.values(r).some(Boolean));const {data:{session}}=await window.supabaseClient?.auth.getSession?.()||{data:{session:null}};const sb=window.supabaseClient;if(!sb){return alert('Conexão com o Supabase não está disponível nesta página.');}const sess=(await sb.auth.getSession()).data.session;if(!sess)return alert('Sua sessão administrativa expirou. Entre novamente.');save.textContent='Salvando empresa, usuário e regras...';save.classList.add('uecb-saving');try{const res=await fetch(CREATE_COMPANY,{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+sess.access_token},body:JSON.stringify({company:{name:$('uecbName').value.trim(),cnpj:$('uecbCnpj').value, status:$('uecbStatus').value,carrier_name:$('uecbCarrier').value.trim()},account:{full_name:$('uecbFullName').value.trim(),username:$('uecbUsername').value.trim(),password:p,email:$('uecbEmail').value.trim()},rules})});const out=await res.json();if(!res.ok)throw Error(out.error||'Não foi possível salvar.');close();alert('Empresa criada com sucesso. Usuário do Supabase e '+out.rules_created+' regra(s) foram gravados.');if(typeof window.UEAdminReload==='function')await window.UEAdminReload();else location.reload();}catch(err){alert(err.message||'Erro ao salvar.');save.textContent='Salvar empresa e criar acesso';save.classList.remove('uecb-saving')}};
+}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-open="empresa"]');if(!b)return;e.preventDefault();e.stopImmediatePropagation();openBuilder()},true);
+window.UEOpenNewCompany=openBuilder;
+})();
+</script>
 </body></html>
 <style id="UE_ADMIN_UPGRADES_V2">
 /* ===== ADM upgrades — visual/analytics only ===== */
