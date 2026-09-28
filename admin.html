@@ -392,6 +392,53 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-open="empr
 window.UEOpenNewCompany=openBuilder;
 })();
 </script>
+
+<!-- UE_COMMON_USER_SAVE_V1 -->
+<script>
+(function(){
+'use strict';
+const SB_USER=window.supabase.createClient('https://rejyergahvzabyerhjhy.supabase.co','sb_publishable_A5oVTI7f-c-M1260_Mq1oA_Y2s0J6E8');
+const CREATE_USER='https://rejyergahvzabyerhjhy.supabase.co/functions/v1/admin-create-user';
+document.addEventListener('submit',async function(ev){
+  const form=ev.target;
+  const title=document.getElementById('modalTitle');
+  if(!form || form.id!=='form' || !title || title.textContent.trim()!=='Cadastrar usuário') return;
+  ev.preventDefault();
+  ev.stopPropagation();
+  ev.stopImmediatePropagation();
+  const data=Object.fromEntries(new FormData(form));
+  const btn=form.querySelector('button.primary');
+  if(!data.nome || !data.login || !data.senha || !data.empresa){
+    alert('Preencha nome, usuário, senha e empresa.');
+    return;
+  }
+  if(String(data.senha).length<6){alert('A senha precisa ter no mínimo 6 caracteres.');return;}
+  const session=(await SB_USER.auth.getSession()).data.session;
+  if(!session){alert('Sua sessão administrativa expirou. Entre novamente.');return;}
+  if(btn){btn.disabled=true;btn.textContent='Criando usuário...';}
+  try{
+    const res=await fetch(CREATE_USER,{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+session.access_token},
+      body:JSON.stringify({
+        full_name:String(data.nome).trim(),
+        username:String(data.login).trim(),
+        password:String(data.senha),
+        company_id:data.empresa
+      })
+    });
+    const out=await res.json().catch(()=>({}));
+    if(!res.ok) throw new Error(out.error||'Não foi possível criar o usuário no Supabase.');
+    document.getElementById('modal')?.classList.remove('show');
+    alert('Usuário criado com sucesso no Supabase.');
+    location.reload();
+  }catch(err){
+    alert(err.message||'Erro ao criar usuário.');
+    if(btn){btn.disabled=false;btn.textContent='Salvar usuário';}
+  }
+},true);
+})();
+</script>
 </body></html>
 <style id="UE_ADMIN_UPGRADES_V2">
 /* ===== ADM upgrades — visual/analytics only ===== */
