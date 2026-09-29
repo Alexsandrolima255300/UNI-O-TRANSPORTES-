@@ -1123,50 +1123,95 @@ header .logo{width:495px!important;height:94px!important;max-height:94px!importa
   };
 })();
 </script>
-<script id="UE_GREETING_FIX_V3">
+<script id="UE_GREETING_FIX_V4">
 (function(){
 'use strict';
+const NOTICE_TEXT='Sua conta não possui uma tabela própria ativa. A cotação padrão continua disponível.';
+let currentName='USUÁRIO';
+
+function escapeHtml(v){
+  return String(v??'').replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
+}
+
+function renderGreeting(){
+  const notice=[...document.querySelectorAll('.hero p')].find(el=>el.textContent?.trim()===NOTICE_TEXT)
+    || [...document.querySelectorAll('p,div,span')].find(el=>el.textContent?.trim()===NOTICE_TEXT);
+  if(!notice) return false;
+
+  let greeting=document.getElementById('ueAccountGreeting');
+  if(!greeting){
+    greeting=document.createElement('div');
+    greeting.id='ueAccountGreeting';
+    greeting.setAttribute('aria-live','polite');
+    greeting.style.cssText='font-size:22px;font-weight:900;color:#17324d;margin:0 0 8px;line-height:1.2;';
+  }
+  if(notice.previousElementSibling!==greeting) notice.parentElement?.insertBefore(greeting,notice);
+  greeting.innerHTML='Olá, '+escapeHtml(currentName)+' 👋';
+  return true;
+}
+
 async function ueApplyGreeting(){
   try{
     const sb=window.supabaseClient;
-    if(!sb||!sb.auth) return;
+    if(!sb?.auth) return;
     const {data:{user}}=await sb.auth.getUser();
     if(!user) return;
-    const {data:profile}=await sb.from('profiles').select('full_name,username,company_id,role,active').eq('id',user.id).maybeSingle();
+
+    const {data:profile}=await sb.from('profiles')
+      .select('full_name,username,company_id,role,active')
+      .eq('id',user.id).maybeSingle();
     if(!profile||profile.role!=='user') return;
-    let name=(profile.full_name||profile.username||user.user_metadata?.full_name||user.email?.split('@')[0]||'USUÁRIO').trim();
+
+    currentName=(profile.full_name||profile.username||user.user_metadata?.full_name||user.email?.split('@')[0]||'USUÁRIO').trim();
+
     if(profile.company_id){
       const {data:company}=await sb.from('companies').select('name').eq('id',profile.company_id).maybeSingle();
-      if(company?.name) name=company.name.trim();
+      if(company?.name) currentName=company.name.trim();
     }
-    const safe=String(name).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
-    window.UE_CURRENT_USER={...user,profile,displayName:name};
+
+    window.UE_CURRENT_USER={...user,profile,displayName:currentName};
+
     const portalTitle=document.querySelector('#ueClientPortal .ue-portal-title h2');
-    if(portalTitle) portalTitle.innerHTML='Olá, '+safe+' 👋';
+    if(portalTitle) portalTitle.innerHTML='Olá, '+escapeHtml(currentName)+' 👋';
+
+    // O botão permanece exclusivamente como "ACESSAR MINHA CONTA".
     const account=document.querySelector('.ue-account');
     if(account){
       account.innerHTML='ACESSAR MINHA CONTA <span class="ue-chevron">⌄</span>';
-      account.title='Usuário conectado: '+name;
+      account.title='Usuário conectado: '+currentName;
     }
-    document.querySelectorAll('[data-ue-greeting]').forEach(el=>el.innerHTML='Olá, '+safe+' 👋');
-    const accountNotice=[...document.querySelectorAll('p,div,span')].find(el=>el.textContent?.trim()==='Sua conta não possui uma tabela própria ativa. A cotação padrão continua disponível.');
-    if(accountNotice){
-      let greeting=document.getElementById('ueAccountGreeting');
-      if(!greeting){
-        greeting=document.createElement('div');
-        greeting.id='ueAccountGreeting';
-        greeting.style.cssText='font-size:22px;font-weight:900;color:#17324d;margin:0 0 8px;line-height:1.2';
-        accountNotice.parentElement?.insertBefore(greeting,accountNotice);
-      }
-      greeting.textContent='Olá, '+name+' 👋';
-    }
-  }catch(e){console.warn('[UNI-O] Saudação não carregada:',e)}
+
+    document.querySelectorAll('[data-ue-greeting]').forEach(el=>el.innerHTML='Olá, '+escapeHtml(currentName)+' 👋');
+    renderGreeting();
+  }catch(e){
+    console.warn('[UNI-O] Saudação não carregada:',e);
+  }
 }
-if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',ueApplyGreeting,{once:true});
-else ueApplyGreeting();
+
+function startGreetingObserver(){
+  const root=document.body;
+  if(!root||root.dataset.ueGreetingObserver) return;
+  root.dataset.ueGreetingObserver='1';
+
+  const observer=new MutationObserver(()=>{
+    renderGreeting();
+  });
+  observer.observe(root,{subtree:true,childList:true,characterData:true});
+
+  // Tenta novamente depois que os scripts assíncronos terminarem de montar o texto.
+  renderGreeting();
+  setTimeout(renderGreeting,250);
+  setTimeout(renderGreeting,750);
+  setTimeout(renderGreeting,1500);
+}
+
+if(document.readyState==='loading'){
+  document.addEventListener('DOMContentLoaded',()=>{startGreetingObserver();ueApplyGreeting();},{once:true});
+}else{
+  startGreetingObserver();
+  ueApplyGreeting();
+}
 window.addEventListener('ue-auth-ready',ueApplyGreeting);
-setTimeout(ueApplyGreeting,500);
-setTimeout(ueApplyGreeting,1500);
 })();
 </script>
 </body></html>
