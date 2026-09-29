@@ -1228,3 +1228,36 @@ function init(){enhanceForm();enhanceCnpj();observeResult();updateProgress();}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
 </script>
+<style id="UE_CLIENT_PORTAL_V1">
+.ue-portal{max-width:1180px;margin:0 auto;padding:16px 22px 0}.ue-portal-bar{background:#fff;border:1px solid #e1eaf2;border-radius:16px;padding:16px 18px;box-shadow:0 8px 25px rgba(16,43,69,.05);display:flex;align-items:center;justify-content:space-between;gap:16px}.ue-portal-title h2{margin:0;color:#102b45;font-size:18px}.ue-portal-title p{margin:4px 0 0;color:#71839a;font-size:11px}.ue-portal-nav{display:flex;gap:6px;flex-wrap:wrap}.ue-portal-nav button{border:1px solid #d9e4ee;background:#fff;color:#466177;border-radius:9px;padding:9px 11px;font-size:10px;font-weight:900;cursor:pointer}.ue-portal-nav button.active,.ue-portal-nav button:hover{background:#0878c9;color:#fff;border-color:#0878c9}.ue-portal-content{margin-top:14px}.ue-client-view{display:none}.ue-client-view.show{display:block}.ue-client-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.ue-client-card{background:#fff;border:1px solid #e2eaf2;border-radius:13px;padding:15px}.ue-client-card small{display:block;color:#7a8da0;font-size:9px;font-weight:900;text-transform:uppercase}.ue-client-card b{display:block;margin-top:5px;color:#102b45;font-size:22px}.ue-client-table{background:#fff;border:1px solid #e2eaf2;border-radius:14px;overflow:auto}.ue-client-table table{width:100%;min-width:720px;border-collapse:collapse;font-size:10px}.ue-client-table th,.ue-client-table td{padding:10px;border-bottom:1px solid #edf2f6;text-align:left}.ue-client-status{padding:5px 8px;border-radius:99px;background:#eef6ff;color:#176aa5;font-weight:900;font-size:9px}.ue-client-status.aprovada{background:#ecf9f0;color:#20834a}.ue-client-status.recusada{background:#fff0f0;color:#b33434}.ue-client-empty{padding:30px;text-align:center;color:#71839a;font-size:11px}@media(max-width:800px){.ue-portal-bar{align-items:flex-start;flex-direction:column}.ue-client-cards{grid-template-columns:1fr 1fr}}@media(max-width:520px){.ue-portal{padding:10px}.ue-client-cards{grid-template-columns:1fr}}
+</style>
+<script id="UE_CLIENT_PORTAL_RUNTIME_V1">
+(function(){
+'use strict';
+async function initClientPortal(){
+ try{
+  const {data:{user}}=await supabaseClient.auth.getUser();if(!user)return;
+  const pr=await supabaseClient.from('profiles').select('full_name,username,company_id,role,active').eq('id',user.id).maybeSingle();
+  if(pr.error||!pr.data||pr.data.role!=='user')return;
+  let companyName=pr.data.full_name||pr.data.username||'USUÁRIO';
+  if(pr.data.company_id){const cr=await supabaseClient.from('companies').select('name').eq('id',pr.data.company_id).maybeSingle();if(cr.data?.name)companyName=cr.data.name}
+  let portal=document.getElementById('ueClientPortal');if(!portal){portal=document.createElement('section');portal.id='ueClientPortal';portal.className='ue-portal';const header=document.querySelector('header');header?.insertAdjacentElement('afterend',portal)}
+  portal.innerHTML='<div class="ue-portal-bar"><div class="ue-portal-title"><h2>Olá, '+esc(companyName)+' 👋</h2><p>Portal do cliente • acompanhe suas cotações e solicite novos fretes.</p></div><nav class="ue-portal-nav"><button class="active" data-client-view="inicio">INÍCIO</button><button data-client-view="nova">NOVA COTAÇÃO</button><button data-client-view="minhas">MINHAS COTAÇÕES</button><button data-client-view="aprovadas">COTAÇÕES APROVADAS</button><button data-client-view="recusadas">COTAÇÕES RECUSADAS</button></nav></div><div class="ue-portal-content"><div id="ueClientInicio" class="ue-client-view show"></div><div id="ueClientLista" class="ue-client-view"></div></div>';
+  const hero=document.querySelector('.hero'),grid=document.querySelector('main .grid');
+  const inicio=document.getElementById('ueClientInicio'),lista=document.getElementById('ueClientLista');
+  let quotes=[];
+  const esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+  const money=v=>Number(v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+  async function loadQuotes(){let q=supabaseClient.from('cotacoes').select('*').eq('user_id',user.id).order('created_at',{ascending:false});const r=await q;quotes=r.data||[]}
+  function cards(){const total=quotes.length,ap=quotes.filter(x=>x.status==='aprovada').length,rec=quotes.filter(x=>x.status==='recusada').length;inicio.innerHTML='<div class="ue-client-cards"><div class="ue-client-card"><small>Minhas cotações</small><b>'+total+'</b></div><div class="ue-client-card"><small>Aprovadas</small><b>'+ap+'</b></div><div class="ue-client-card"><small>Recusadas</small><b>'+rec+'</b></div></div><div style="margin-top:12px;background:#fff;border:1px solid #e2eaf2;border-radius:14px;padding:16px"><b style="color:#102b45;font-size:13px">Acesso rápido</b><p style="font-size:11px;color:#71839a;margin:6px 0 12px">Comece uma nova cotação ou acompanhe as solicitações feitas pela sua empresa.</p><button class="primary" id="uePortalNewQuote">Nova cotação</button></div>';document.getElementById('uePortalNewQuote').onclick=()=>show('nova')}
+  function list(filter){const rows=quotes.filter(x=>!filter||(filter==='minhas'?true:x.status===filter));lista.innerHTML='<div class="ue-client-table"><table><thead><tr><th>Código</th><th>Origem</th><th>Destino</th><th>NF</th><th>Cotação</th><th>Status</th><th>Data</th></tr></thead><tbody>'+(rows.map(x=>'<tr><td><b>'+esc(x.codigo_cotacao||'—')+'</b></td><td>'+esc(x.origem||'—')+'</td><td>'+esc(x.destino||'—')+'</td><td>'+money(x.valor_nf)+'</td><td>'+money(x.valor_cotacao)+'</td><td><span class="ue-client-status '+(x.status||'')+'">'+esc(x.status||'nova')+'</span></td><td>'+new Date(x.created_at).toLocaleString('pt-BR')+'</td></tr>').join('')||'<tr><td colspan="7" class="ue-client-empty">Nenhuma cotação encontrada.</td></tr>')+'</tbody></table></div>'}
+  function show(view){document.querySelectorAll('[data-client-view]').forEach(b=>b.classList.toggle('active',b.dataset.clientView===view));inicio.classList.toggle('show',view==='inicio');lista.classList.toggle('show',view==='minhas'||view==='aprovadas'||view==='recusadas');if(view==='inicio')cards();if(view==='minhas')list('minhas');if(view==='aprovadas')list('aprovada');if(view==='recusadas')list('recusada');if(view==='nova'){inicio.classList.remove('show');lista.classList.remove('show');hero?.scrollIntoView({behavior:'smooth',block:'start'});return}}
+  portal.querySelectorAll('[data-client-view]').forEach(b=>b.onclick=()=>show(b.dataset.clientView));
+  await loadQuotes();cards();
+  if(window.__UE_CLIENT_PORTAL_CHANNEL)window.__UE_CLIENT_PORTAL_CHANNEL.unsubscribe();
+  window.__UE_CLIENT_PORTAL_CHANNEL=supabaseClient.channel('client-quotes-'+user.id).on('postgres_changes',{event:'*',schema:'public',table:'cotacoes',filter:'user_id=eq.'+user.id},async()=>{await loadQuotes();const active=portal.querySelector('.ue-portal-nav button.active')?.dataset.clientView||'inicio';show(active)}).subscribe();
+ }catch(e){console.error('Portal do cliente:',e)}
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',initClientPortal,{once:true});else initClientPortal();
+})();
+</script>
