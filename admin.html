@@ -552,7 +552,31 @@ function improveConfig(){
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',improveConfig,{once:true});else improveConfig();
 })();
-</script>\n</body></html>
+</script>\n<style id="UE_ADMIN_IDENTITY_V1">
+.ue-admin-identity{margin:-8px 0 18px;background:#fff;border:1px solid #e1e8ef;border-radius:12px;padding:12px 15px;box-shadow:0 4px 15px rgba(16,43,69,.04);color:#17324d;font-size:13px}
+.ue-admin-identity span{display:block;color:#71839a;font-size:11px;font-weight:500;margin-top:3px}
+</style>
+<script id="UE_ADMIN_IDENTITY_RUNTIME_V1">
+(function(){
+'use strict';
+function esc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
+async function render(){
+  let box=document.getElementById('ueAdminIdentity');
+  if(!box){box=document.createElement('div');box.id='ueAdminIdentity';box.className='ue-admin-identity';const top=document.querySelector('.top');if(top) top.insertAdjacentElement('afterend',box);else document.querySelector('.main')?.prepend(box)}
+  try{
+    const {data:{user}}=await supabaseClient.auth.getUser();
+    if(!user){box.style.display='none';return}
+    const {data:profile}=await supabaseClient.from('profiles').select('full_name,username,role,active').eq('id',user.id).maybeSingle();
+    if(profile?.role!=='admin'){box.style.display='none';return}
+    const name=(profile.full_name||profile.username||'ADMINISTRAÇÃO').trim();
+    box.innerHTML='<strong>Olá, '+esc(name.toUpperCase())+' 👋</strong><span>Painel administrativo • gerenciamento da União Express</span>';
+    box.style.display='block';
+  }catch(e){console.warn('[UNI-O] Identidade ADM:',e)}
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',render,{once:true});else render();
+supabaseClient.auth.onAuthStateChange(()=>setTimeout(render,0));
+})();
+</script></body></html>
 <style id="UE_ADMIN_UPGRADES_V2">
 /* ===== ADM upgrades — visual/analytics only ===== */
 .ue-live-strip{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:0 0 18px}
