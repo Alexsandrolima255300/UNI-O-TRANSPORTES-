@@ -568,7 +568,7 @@ async function render(){
     if(!user){box.style.display='none';return}
     const {data:profile}=await supabaseClient.from('profiles').select('full_name,username,role,active').eq('id',user.id).maybeSingle();
     if(profile?.role!=='admin'){box.style.display='none';return}
-    const name=(profile.full_name||profile.username||'ADMINISTRAÇÃO').trim();
+    const name=(profile.role==='admin'?(profile.username||profile.full_name): (profile.full_name||profile.username))?.trim()||'ADMINISTRAÇÃO';
     box.innerHTML='<strong>Olá, '+esc(name.toUpperCase())+' 👋</strong><span>Painel administrativo • gerenciamento da União Express</span>';
     box.style.display='block';
   }catch(e){console.warn('[UNI-O] Identidade ADM:',e)}
