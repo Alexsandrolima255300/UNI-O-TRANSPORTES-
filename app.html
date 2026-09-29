@@ -1123,6 +1123,41 @@ header .logo{width:495px!important;height:94px!important;max-height:94px!importa
   };
 })();
 </script>
+<script id="UE_GREETING_FIX_V3">
+(function(){
+'use strict';
+async function ueApplyGreeting(){
+  try{
+    const sb=window.supabaseClient;
+    if(!sb||!sb.auth) return;
+    const {data:{user}}=await sb.auth.getUser();
+    if(!user) return;
+    const {data:profile}=await sb.from('profiles').select('full_name,username,company_id,role,active').eq('id',user.id).maybeSingle();
+    if(!profile||profile.role!=='user') return;
+    let name=(profile.full_name||profile.username||user.user_metadata?.full_name||user.email?.split('@')[0]||'USUÁRIO').trim();
+    if(profile.company_id){
+      const {data:company}=await sb.from('companies').select('name').eq('id',profile.company_id).maybeSingle();
+      if(company?.name) name=company.name.trim();
+    }
+    const safe=String(name).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+    window.UE_CURRENT_USER={...user,profile,displayName:name};
+    const portalTitle=document.querySelector('#ueClientPortal .ue-portal-title h2');
+    if(portalTitle) portalTitle.innerHTML='Olá, '+safe+' 👋';
+    const account=document.querySelector('.ue-account');
+    if(account){
+      account.innerHTML='Olá, '+safe+' 👋 <span class="ue-chevron">⌄</span>';
+      account.title='Usuário conectado: '+name;
+    }
+    document.querySelectorAll('[data-ue-greeting]').forEach(el=>el.innerHTML='Olá, '+safe+' 👋');
+  }catch(e){console.warn('[UNI-O] Saudação não carregada:',e)}
+}
+if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',ueApplyGreeting,{once:true});
+else ueApplyGreeting();
+window.addEventListener('ue-auth-ready',ueApplyGreeting);
+setTimeout(ueApplyGreeting,500);
+setTimeout(ueApplyGreeting,1500);
+})();
+</script>
 </body></html>
 <style id="UE_UPGRADES_V2">
 /* ===== UNI-O UPGRADES — visual/UX only; calculation logic untouched ===== */
