@@ -1145,10 +1145,21 @@ async function ueApplyGreeting(){
     if(portalTitle) portalTitle.innerHTML='Olá, '+safe+' 👋';
     const account=document.querySelector('.ue-account');
     if(account){
-      account.innerHTML='Olá, '+safe+' 👋 <span class="ue-chevron">⌄</span>';
+      account.innerHTML='ACESSAR MINHA CONTA <span class="ue-chevron">⌄</span>';
       account.title='Usuário conectado: '+name;
     }
     document.querySelectorAll('[data-ue-greeting]').forEach(el=>el.innerHTML='Olá, '+safe+' 👋');
+    const accountNotice=[...document.querySelectorAll('p,div,span')].find(el=>el.textContent?.trim()==='Sua conta não possui uma tabela própria ativa. A cotação padrão continua disponível.');
+    if(accountNotice){
+      let greeting=document.getElementById('ueAccountGreeting');
+      if(!greeting){
+        greeting=document.createElement('div');
+        greeting.id='ueAccountGreeting';
+        greeting.style.cssText='font-size:22px;font-weight:900;color:#17324d;margin:0 0 8px;line-height:1.2';
+        accountNotice.parentElement?.insertBefore(greeting,accountNotice);
+      }
+      greeting.textContent='Olá, '+name+' 👋';
+    }
   }catch(e){console.warn('[UNI-O] Saudação não carregada:',e)}
 }
 if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',ueApplyGreeting,{once:true});
