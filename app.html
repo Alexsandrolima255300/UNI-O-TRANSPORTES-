@@ -1123,17 +1123,27 @@ header .logo{width:495px!important;height:94px!important;max-height:94px!importa
   };
 })();
 </script>
-<script id="UE_GREETING_FIX_V4">
+<script id="UE_GREETING_FIX_V5">
 (function(){
 'use strict';
 const NOTICE_TEXT='Sua conta não possui uma tabela própria ativa. A cotação padrão continua disponível.';
-let currentName='USUÁRIO';
+let currentName='';
+let isAuthenticated=false;
 
 function escapeHtml(v){
   return String(v??'').replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
 }
 
+function removeGreeting(){
+  document.getElementById('ueAccountGreeting')?.remove();
+  document.querySelectorAll('[data-ue-greeting]').forEach(el=>el.remove());
+}
+
 function renderGreeting(){
+  if(!isAuthenticated || !currentName) {
+    removeGreeting();
+    return false;
+  }
   const notice=[...document.querySelectorAll('.hero p')].find(el=>el.textContent?.trim()===NOTICE_TEXT)
     || [...document.querySelectorAll('p,div,span')].find(el=>el.textContent?.trim()===NOTICE_TEXT);
   if(!notice) return false;
@@ -1156,26 +1166,41 @@ async function ueApplyGreeting(){
     const sb=window.supabaseClient;
     if(!sb?.auth) return;
     const {data:{user}}=await sb.auth.getUser();
-    if(!user) return;
 
-    const {data:profile}=await sb.from('profiles')
-      .select('full_name,username,company_id,role,active')
-      .eq('id',user.id).maybeSingle();
-    if(!profile||profile.role!=='user') return;
-
-    currentName=(profile.full_name||profile.username||user.user_metadata?.full_name||user.email?.split('@')[0]||'USUÁRIO').trim();
-
-    if(profile.company_id){
-      const {data:company}=await sb.from('companies').select('name').eq('id',profile.company_id).maybeSingle();
-      if(company?.name) currentName=company.name.trim();
+    if(!user){
+      isAuthenticated=false;
+      currentName='';
+      delete window.UE_CURRENT_USER;
+      removeGreeting();
+      return;
     }
 
+    const {data:profile}=await sb.from('profiles')
+      .select('full_name,username,role,active')
+      .eq('id',user.id).maybeSingle();
+
+    if(!profile || profile.role!=='user'){
+      isAuthenticated=false;
+      currentName='';
+      removeGreeting();
+      return;
+    }
+
+    const name=(profile.full_name||profile.username||'').trim();
+    if(!name){
+      isAuthenticated=false;
+      currentName='';
+      removeGreeting();
+      return;
+    }
+
+    isAuthenticated=true;
+    currentName=name;
     window.UE_CURRENT_USER={...user,profile,displayName:currentName};
 
     const portalTitle=document.querySelector('#ueClientPortal .ue-portal-title h2');
     if(portalTitle) portalTitle.innerHTML='Olá, '+escapeHtml(currentName)+' 👋';
 
-    // O botão permanece exclusivamente como "ACESSAR MINHA CONTA".
     const account=document.querySelector('.ue-account');
     if(account){
       account.innerHTML='ACESSAR MINHA CONTA <span class="ue-chevron">⌄</span>';
@@ -1191,15 +1216,15 @@ async function ueApplyGreeting(){
 
 function startGreetingObserver(){
   const root=document.body;
-  if(!root||root.dataset.ueGreetingObserver) return;
-  root.dataset.ueGreetingObserver='1';
+  if(!root||root.dataset.ueGreetingObserverV5) return;
+  root.dataset.ueGreetingObserverV5='1';
 
   const observer=new MutationObserver(()=>{
-    renderGreeting();
+    if(isAuthenticated && currentName) renderGreeting();
+    else removeGreeting();
   });
   observer.observe(root,{subtree:true,childList:true,characterData:true});
 
-  // Tenta novamente depois que os scripts assíncronos terminarem de montar o texto.
   renderGreeting();
   setTimeout(renderGreeting,250);
   setTimeout(renderGreeting,750);
