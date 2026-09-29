@@ -1146,7 +1146,8 @@ function renderGreeting(){
     greeting.style.cssText='font-size:22px;font-weight:900;color:#17324d;margin:0 0 8px;line-height:1.2;';
   }
   if(notice.previousElementSibling!==greeting) notice.parentElement?.insertBefore(greeting,notice);
-  greeting.innerHTML='Olá, '+escapeHtml(currentName)+' 👋';
+  const nextGreeting='Olá, '+escapeHtml(currentName)+' 👋';
+  if(greeting.innerHTML!==nextGreeting) greeting.innerHTML=nextGreeting;
   return true;
 }
 
