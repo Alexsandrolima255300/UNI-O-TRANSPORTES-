@@ -1256,7 +1256,7 @@ async function initClientPortal(){
   portal.querySelectorAll('[data-client-view]').forEach(b=>b.onclick=()=>show(b.dataset.clientView));
   cards();
   if(window.__UE_CLIENT_PORTAL_CHANNEL)window.__UE_CLIENT_PORTAL_CHANNEL.unsubscribe();
-  window.__UE_CLIENT_PORTAL_CHANNEL=supabaseClient.channel('client-quotes-'+user.id).on('postgres_changes',{event:'*',schema:'public',table:'cotacoes',filter:'user_id=eq.'+user.id},async()=>{await loadQuotes();const active=portal.querySelector('.ue-portal-nav button.active')?.dataset.clientView||'inicio';show(active)}).subscribe();
+  window.__UE_CLIENT_PORTAL_CHANNEL=supabaseClient.channel('client-quotes-'+user.id).on('postgres_changes',{event:'*',schema:'public',table:'cotacoes',filter:'user_id=eq.'+user.id},async()=>{if(!quotesLoaded)return;await loadQuotes();const active=portal.querySelector('.ue-portal-nav button.active')?.dataset.clientView||'inicio';show(active)}).subscribe();
  }catch(e){console.error('Portal do cliente:',e)}
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',initClientPortal,{once:true});else initClientPortal();
