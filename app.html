@@ -809,34 +809,18 @@ function newQuote(){
 })();
 </script>
 <script>
-/* USER_COMPANY_NAME_AFTER_LOGIN_V1 */
+/* ACCOUNT_BUTTON_STATIC_V2 — mantém o botão como ação de login */
 (function(){
-  async function loadAccountName(){
+  function resetAccountButton(){
     const button=document.getElementById('ueAccountAction');
     const label=document.getElementById('ueAccountName');
     if(!button||!label)return;
-    try{
-      const {data:{user}}=await supabaseClient.auth.getUser();
-      if(!user){label.textContent='ACESSAR MINHA CONTA';button.setAttribute('aria-label','Acessar minha conta');return;}
-      const {data:profile,error}=await supabaseClient.from('profiles')
-        .select('full_name,username,company_id,role,active')
-        .eq('id',user.id).maybeSingle();
-      if(error||!profile)return;
-      let displayName=(profile.full_name||'').trim();
-      if(profile.company_id){
-        const {data:company}=await supabaseClient.from('companies')
-          .select('name,status').eq('id',profile.company_id).maybeSingle();
-        if(company?.name?.trim()) displayName=company.name.trim();
-      }
-      displayName=displayName||profile.username||user.email?.split('@')[0]||'USUÁRIO';
-      label.textContent=displayName.toUpperCase();
-      button.setAttribute('aria-label','Conta de '+displayName);
-      button.title='Conta de '+displayName;
-    }catch(err){console.error('Não foi possível carregar o nome da conta:',err);}
+    label.textContent='ACESSAR MINHA CONTA';
+    button.setAttribute('aria-label','Acessar minha conta');
+    button.removeAttribute('title');
   }
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',loadAccountName);
-  else loadAccountName();
-  document.addEventListener('ue-auth-ready',loadAccountName);
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',resetAccountButton,{once:true});
+  else resetAccountButton();
 })();
 </script>
 <style>
@@ -1123,7 +1107,7 @@ header .logo{width:495px!important;height:94px!important;max-height:94px!importa
   };
 })();
 </script>
-<script id="UE_GREETING_FIX_V5">
+<script id="UE_GREETING_FIX_V6">
 (function(){
 'use strict';
 const NOTICE_TEXT='Sua conta não possui uma tabela própria ativa. A cotação padrão continua disponível.';
@@ -1136,17 +1120,16 @@ function escapeHtml(v){
 
 function removeGreeting(){
   document.getElementById('ueAccountGreeting')?.remove();
-  document.querySelectorAll('[data-ue-greeting]').forEach(el=>el.remove());
+}
+
+function findNotice(){
+  return [...document.querySelectorAll('p,div,span')].find(el=>el.textContent?.trim()===NOTICE_TEXT);
 }
 
 function renderGreeting(){
-  if(!isAuthenticated || !currentName) {
-    removeGreeting();
-    return false;
-  }
-  const notice=[...document.querySelectorAll('.hero p')].find(el=>el.textContent?.trim()===NOTICE_TEXT)
-    || [...document.querySelectorAll('p,div,span')].find(el=>el.textContent?.trim()===NOTICE_TEXT);
-  if(!notice) return false;
+  if(!isAuthenticated || !currentName){ removeGreeting(); return; }
+  const notice=findNotice();
+  if(!notice)return false;
 
   let greeting=document.getElementById('ueAccountGreeting');
   if(!greeting){
@@ -1156,15 +1139,15 @@ function renderGreeting(){
     greeting.style.cssText='font-size:22px;font-weight:900;color:#17324d;margin:0 0 8px;line-height:1.2;';
   }
   if(notice.previousElementSibling!==greeting) notice.parentElement?.insertBefore(greeting,notice);
-  const nextGreeting='Olá, '+escapeHtml(currentName)+' 👋';
-  if(greeting.innerHTML!==nextGreeting) greeting.innerHTML=nextGreeting;
+  const html='Olá, '+escapeHtml(currentName)+' 👋';
+  if(greeting.innerHTML!==html)greeting.innerHTML=html;
   return true;
 }
 
 async function ueApplyGreeting(){
   try{
     const sb=window.supabaseClient;
-    if(!sb?.auth) return;
+    if(!sb?.auth)return;
     const {data:{user}}=await sb.auth.getUser();
 
     if(!user){
@@ -1175,39 +1158,39 @@ async function ueApplyGreeting(){
       return;
     }
 
-    const {data:profile}=await sb.from('profiles')
+    const {data:profile,error}=await sb.from('profiles')
       .select('full_name,username,role,active')
       .eq('id',user.id).maybeSingle();
 
-    if(!profile || profile.role!=='user'){
+    if(error||!profile||profile.role!=='user'){
       isAuthenticated=false;
       currentName='';
       removeGreeting();
       return;
     }
 
-    const name=(profile.full_name||profile.username||'').trim();
-    if(!name){
+    currentName=(profile.full_name||profile.username||'').trim();
+    if(!currentName){
       isAuthenticated=false;
-      currentName='';
       removeGreeting();
       return;
     }
 
     isAuthenticated=true;
-    currentName=name;
     window.UE_CURRENT_USER={...user,profile,displayName:currentName};
 
     const portalTitle=document.querySelector('#ueClientPortal .ue-portal-title h2');
-    if(portalTitle) portalTitle.innerHTML='Olá, '+escapeHtml(currentName)+' 👋';
+    if(portalTitle)portalTitle.innerHTML='Olá, '+escapeHtml(currentName)+' 👋';
 
-    const account=document.querySelector('.ue-account');
+    // O nome nunca é colocado no botão "ACESSAR MINHA CONTA".
+    const label=document.getElementById('ueAccountName');
+    const account=document.getElementById('ueAccountAction');
+    if(label)label.textContent='ACESSAR MINHA CONTA';
     if(account){
-      account.innerHTML='ACESSAR MINHA CONTA <span class="ue-chevron">⌄</span>';
-      account.title='Usuário conectado: '+currentName;
+      account.setAttribute('aria-label','Acessar minha conta');
+      account.removeAttribute('title');
     }
 
-    document.querySelectorAll('[data-ue-greeting]').forEach(el=>el.innerHTML='Olá, '+escapeHtml(currentName)+' 👋');
     renderGreeting();
   }catch(e){
     console.warn('[UNI-O] Saudação não carregada:',e);
@@ -1216,19 +1199,14 @@ async function ueApplyGreeting(){
 
 function startGreetingObserver(){
   const root=document.body;
-  if(!root||root.dataset.ueGreetingObserverV5) return;
-  root.dataset.ueGreetingObserverV5='1';
-
-  const observer=new MutationObserver(()=>{
-    if(isAuthenticated && currentName) renderGreeting();
+  if(!root||root.dataset.ueGreetingObserverV6)return;
+  root.dataset.ueGreetingObserverV6='1';
+  new MutationObserver(()=>{
+    if(isAuthenticated&&currentName)renderGreeting();
     else removeGreeting();
-  });
-  observer.observe(root,{subtree:true,childList:true,characterData:true});
-
+  }).observe(root,{subtree:true,childList:true,characterData:true});
   renderGreeting();
-  setTimeout(renderGreeting,250);
-  setTimeout(renderGreeting,750);
-  setTimeout(renderGreeting,1500);
+  [250,750,1500,3000].forEach(ms=>setTimeout(renderGreeting,ms));
 }
 
 if(document.readyState==='loading'){
