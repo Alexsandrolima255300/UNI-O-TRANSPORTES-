@@ -1,0 +1,76 @@
+name: Backup externo do banco UNI-O
+
+on:
+  schedule:
+    - cron: "0 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Verificar secrets
+        shell: bash
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          BACKUP_ENCRYPTION_KEY: ${{ secrets.BACKUP_ENCRYPTION_KEY }}
+        run: |
+          set -euo pipefail
+          test -n "$SUPABASE_DB_URL" || { echo "SUPABASE_DB_URL não configurado."; exit 1; }
+          test -n "$BACKUP_ENCRYPTION_KEY" || { echo "BACKUP_ENCRYPTION_KEY não configurado."; exit 1; }
+
+      - name: Gerar dump PostgreSQL
+        shell: bash
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          set -euo pipefail
+          mkdir -p backup
+          docker run --rm \
+            -e DATABASE_URL="$SUPABASE_DB_URL" \
+            postgres:17 \
+            bash -lc 'pg_dump "$DATABASE_URL" --format=custom --no-owner --no-privileges' \
+            > backup/uniao-db.dump
+
+      - name: Compactar e criptografar backup
+        shell: bash
+        env:
+          BACKUP_ENCRYPTION_KEY: ${{ secrets.BACKUP_ENCRYPTION_KEY }}
+        run: |
+          set -euo pipefail
+          DATE="$(date -u +%Y-%m-%d_%H-%M-%S)"
+          tar -C backup -czf "backup/uniao-${DATE}.tar.gz" uniao-db.dump
+          rm -f backup/uniao-db.dump
+
+          openssl enc -aes-256-cbc -pbkdf2 -salt -iter 200000 \
+            -in "backup/uniao-${DATE}.tar.gz" \
+            -out "backup/uniao-${DATE}.tar.gz.enc" \
+            -pass env:BACKUP_ENCRYPTION_KEY
+
+          rm -f "backup/uniao-${DATE}.tar.gz"
+          sha256sum "backup/uniao-${DATE}.tar.gz.enc" > "backup/uniao-${DATE}.sha256"
+
+      - name: Testar integridade do arquivo
+        shell: bash
+        run: |
+          set -euo pipefail
+          sha256sum -c backup/*.sha256
+
+      - name: Publicar backup externo
+        uses: actions/upload-artifact@v4
+        with:
+          name: uniao-backup-${{ github.run_id }}
+          path: backup/
+          retention-days: 90
+          if-no-files-found: error
+
+      - name: Resumo
+        shell: bash
+        run: |
+          echo "Backup externo concluído."
+          echo "O arquivo publicado está criptografado e ficará disponível por 90 dias."
