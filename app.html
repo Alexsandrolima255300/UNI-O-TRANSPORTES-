@@ -4,14 +4,14 @@
   const URL='https://rejyergahvzabyerhjhy.supabase.co';
   const KEY='sb_publishable_A5oVTI7f-c-M1260_Mq1oA_Y2s0J6E8';
   const client=window.supabase.createClient(URL,KEY);
-  document.documentElement.style.visibility='hidden';document.documentElement.classList.add('ue-quote-locked');
+  document.documentElement.style.visibility='hidden';
   async function protect(){
     const {data:{user}}=await client.auth.getUser();
     if(!user){document.documentElement.style.visibility='visible';return;}
     const {data:profile}=await client.from('profiles').select('role,active').eq('id',user.id).single();
     if(profile?.role==='admin'){location.replace('admin.html');return;}
     if(!profile || profile.role!=='user' || profile.active!==true){await client.auth.signOut();return;}
-    document.documentElement.classList.remove('ue-quote-locked');document.documentElement.style.visibility='visible';
+    document.documentElement.style.visibility='visible';
   }
   protect().catch(()=>{location.replace('index.html')});
 })();
@@ -871,7 +871,7 @@ header .logo{width:495px!important;height:94px!important;max-height:94px!importa
     const table=tables?.[0];
     if(!table){
       if(hero)hero.textContent='Sistema de cotação padrão';
-      if(sub)sub.textContent='Sua conta não possui uma tabela própria ativa. A cotação padrão continua disponível.';
+      if(sub)sub.textContent='Sua conta não possui uma tabela própria ativa. A cotação pública continua disponível.';
       return;
     }
     const {data:rules,error}=await supabaseClient.from('freight_rules').select('destination,region,price_per_kg,fixed_price,nf_percentage,minimum_charge,excess_price_per_kg,conditions').eq('table_id',table.id).eq('user_id',user.id).order('rule_order',{ascending:true});
@@ -1232,7 +1232,27 @@ if(document.readyState==='loading'){
 window.addEventListener('ue-auth-ready',ueApplyGreeting);
 })();
 </script>
-</body></html>
+<script id="UE_HEADER_AUTH_LABEL_V1">
+(function(){
+  async function updateHeader(){
+    const link=document.querySelector('.ue-nav a[href="#cotacao"]');
+    if(!link)return;
+    let logged=false;
+    try{
+      const {data:{user}}=await supabaseClient.auth.getUser();
+      if(user){
+        const {data:p}=await supabaseClient.from('profiles').select('role,active').eq('id',user.id).maybeSingle();
+        logged=p?.role==='user'&&p?.active===true;
+      }
+    }catch(e){}
+    link.textContent=logged?'MINHAS COTAÇÕES':'COTAÇÃO';
+    link.setAttribute('aria-label',logged?'Minhas cotações':'Cotação');
+    link.onclick=logged?(ev=>{ev.preventDefault();if(typeof window.__UE_OPEN_CLIENT_PORTAL==='function')window.__UE_OPEN_CLIENT_PORTAL();}):null;
+  }
+  updateHeader();
+  supabaseClient.auth.onAuthStateChange(()=>setTimeout(updateHeader,80));
+})();
+</script></body></html>
 <style id="UE_QUOTE_AUTH_LOCK">html.ue-quote-locked .grid{display:none!important}</style><style id="UE_UPGRADES_V2">
 /* ===== UNI-O UPGRADES — visual/UX only; calculation logic untouched ===== */
 .ue-progress{position:fixed;top:0;left:0;right:0;height:4px;background:rgba(255,255,255,.22);z-index:99999;pointer-events:none}
