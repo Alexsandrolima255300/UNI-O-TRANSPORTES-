@@ -1291,8 +1291,8 @@ window.addEventListener('ue-auth-ready',ueApplyGreeting);
       btn.removeAttribute('title');
       btn.onclick=function(){
         try{
-          if(window.parent && window.parent!==window && typeof window.parent.routeForUser==='function'){
-            window.parent.routeForUser(null);
+          if(window.parent && window.parent!==window && typeof window.parent.openLogin==='function'){
+            window.parent.openLogin();
             return;
           }
         }catch(e){}
