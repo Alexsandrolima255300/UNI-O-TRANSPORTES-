@@ -7,7 +7,9 @@
   document.documentElement.style.visibility='hidden';
   async function protect(){
     const {data:{user}}=await client.auth.getUser();
+    const manualLogin=sessionStorage.getItem('ue_manual_login')==='1';
     if(!user){document.documentElement.style.visibility='visible';return;}
+    if(!manualLogin){await client.auth.signOut();document.documentElement.style.visibility='visible';return;}
     const {data:profile}=await client.from('profiles').select('role,active').eq('id',user.id).single();
     if(profile?.role==='admin'){location.replace('admin.html');return;}
     if(!profile || profile.role!=='user' || profile.active!==true){await client.auth.signOut();return;}
@@ -861,8 +863,9 @@ header .logo{width:495px!important;height:94px!important;max-height:94px!importa
 (async function(){
   try{
     const {data:{user}}=await supabaseClient.auth.getUser();
+    const manualLogin=sessionStorage.getItem('ue_manual_login')==='1';
     const hero=document.querySelector('.hero .ey'),sub=document.querySelector('.hero p');
-    if(!user){
+    if(!user || !manualLogin){
       if(hero)hero.textContent='Acesse sua conta para cotar';
       if(sub)sub.textContent='Entre em “Acessar minha conta” para acessar o painel de cotação e utilizar a tabela da sua empresa.';
       return;
