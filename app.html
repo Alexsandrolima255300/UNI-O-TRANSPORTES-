@@ -1256,7 +1256,70 @@ window.addEventListener('ue-auth-ready',ueApplyGreeting);
   updateHeader();
   supabaseClient.auth.onAuthStateChange(()=>setTimeout(updateHeader,80));
 })();
-</script></body></html>
+</script><script id="UE_LOGOUT_BUTTON_V1">
+(function(){
+  'use strict';
+  async function syncAccountButton(){
+    const btn=document.getElementById('ueAccountAction') || document.querySelector('.ue-account');
+    const quote=document.querySelector('.ue-nav [data-action="quote"]');
+    if(!btn)return;
+    let logged=false;
+    try{
+      const {data:{user}}=await supabaseClient.auth.getUser();
+      if(user){
+        const {data:p}=await supabaseClient.from('profiles').select('role,active').eq('id',user.id).maybeSingle();
+        logged=p?.role==='user' && p?.active===true && sessionStorage.getItem('ue_manual_login')==='1';
+      }
+    }catch(e){}
+    if(logged){
+      btn.id='ueAccountAction';
+      btn.textContent='SAIR DA CONTA';
+      btn.setAttribute('aria-label','Sair da conta');
+      btn.setAttribute('title','Sair da conta');
+      btn.onclick=async function(e){
+        e.preventDefault();
+        e.stopPropagation();
+        btn.textContent='SAINDO...';
+        try{ sessionStorage.removeItem('ue_manual_login'); await supabaseClient.auth.signOut(); }catch(err){ console.warn('[UNI-O] Logout:',err); }
+        window.location.reload();
+      };
+      btn.onkeydown=function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();btn.click();}};
+    }else{
+      btn.id='ueAccountAction';
+      btn.textContent='FAZER LOGIN';
+      btn.setAttribute('aria-label','Fazer login');
+      btn.removeAttribute('title');
+      btn.onclick=function(){
+        try{
+          if(window.parent && window.parent!==window && typeof window.parent.routeForUser==='function'){
+            window.parent.routeForUser(null);
+            return;
+          }
+        }catch(e){}
+        window.location.href='index.html';
+      };
+      btn.onkeydown=function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();btn.click();}};
+    }
+    if(quote){
+      quote.textContent=logged?'MINHAS COTAÇÕES':'COTAÇÃO';
+      quote.setAttribute('aria-label',logged?'Minhas cotações':'Cotação');
+      quote.onclick=logged && typeof window.__UE_OPEN_CLIENT_PORTAL==='function'
+        ? function(e){e.preventDefault();window.__UE_OPEN_CLIENT_PORTAL();}
+        : function(e){e.preventDefault();window.scrollTo({top:0,behavior:'smooth'});};
+    }
+  }
+  function init(){
+    syncAccountButton();
+    if(window.supabaseClient?.auth){
+      supabaseClient.auth.onAuthStateChange(function(){setTimeout(syncAccountButton,80);});
+    }
+    setTimeout(syncAccountButton,300);
+    setTimeout(syncAccountButton,1000);
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
+})();
+</script>
+</body></html>
 <style id="UE_QUOTE_AUTH_LOCK">html.ue-quote-locked .grid{display:none!important}</style><style id="UE_UPGRADES_V2">
 /* ===== UNI-O UPGRADES — visual/UX only; calculation logic untouched ===== */
 .ue-progress{position:fixed;top:0;left:0;right:0;height:4px;background:rgba(255,255,255,.22);z-index:99999;pointer-events:none}
