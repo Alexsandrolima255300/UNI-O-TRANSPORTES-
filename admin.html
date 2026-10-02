@@ -159,6 +159,125 @@ const SUPABASE_URL='https://rejyergahvzabyerhjhy.supabase.co',SUPABASE_PUBLISHAB
 </script><style>
 <!-- COTACOES_ADMIN_V1 -->
 .ue-qcards{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:14px;margin:0 0 19px}.ue-qcard{background:#fff;border:1px solid #e4ecf4;border-radius:16px;padding:18px;box-shadow:var(--shadow)}.ue-qcard small{display:block;color:#71839a;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.3px}.ue-qnum{font-size:27px;font-weight:950;margin-top:7px;color:#102b45}.ue-qdot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px}.ue-qtable{min-width:1100px}.ue-qtable select{border:1px solid #d5e0eb;border-radius:8px;padding:6px 8px;background:#fff;font-size:11px;font-weight:800}.ue-qtype{font-size:10px;font-weight:900;border-radius:99px;padding:5px 8px;background:#eef6ff;color:#176aa5}.ue-qtype.vis{background:#f5f5f5;color:#697789}.ue-notify{position:fixed;right:22px;top:22px;z-index:100;background:#fff;border:1px solid #dce8f2;border-left:4px solid #0878c9;border-radius:13px;padding:13px 16px;box-shadow:0 16px 45px rgba(12,42,72,.16);font-size:12px;font-weight:900;display:none}.ue-notify.show{display:block;animation:ueIn .22s ease}@keyframes ueIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}.ue-graphs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}.ue-graph-card{background:#fff;border:1px solid #e4ecf4;border-radius:18px;padding:20px;box-shadow:var(--shadow)}.ue-graph-card h3{margin:0;font-size:15px}.ue-graph{height:270px;margin-top:10px}.ue-full{grid-column:1/-1}@media(max-width:1100px){.ue-qcards{grid-template-columns:repeat(3,minmax(0,1fr))}}@media(max-width:700px){.ue-qcards,.ue-graphs{grid-template-columns:1fr}.ue-full{grid-column:auto}}
+</style><style id="UE_ADMIN_MOBILE_OPTIMIZATION_V2">
+/* ===== ADMIN MOBILE OPTIMIZATION V2 — SOMENTE RESPONSIVIDADE ===== */
+html,body{max-width:100%;overflow-x:hidden}
+button,input,select,textarea{touch-action:manipulation}
+@media(max-width:650px){
+  .admin{display:block!important;min-height:100vh!important}
+  .ue-sidebar{
+    position:fixed!important;
+    left:0!important;right:0!important;bottom:0!important;top:auto!important;
+    width:100%!important;height:68px!important;
+    padding:7px 8px!important;
+    display:flex!important;flex-direction:row!important;align-items:center!important;
+    justify-content:space-between!important;
+    border:0!important;border-top:1px solid var(--line)!important;
+    box-shadow:0 -5px 20px rgba(16,35,63,.08)!important;
+    background:rgba(255,255,255,.97)!important;
+    backdrop-filter:blur(12px)!important;
+    z-index:10000!important;
+  }
+  .ue-side-brand{display:none!important}
+  .ue-side-nav{
+    flex:1!important;width:auto!important;display:flex!important;
+    align-items:center!important;justify-content:flex-start!important;
+    gap:5px!important;overflow-x:auto!important;scrollbar-width:none!important;
+    padding:0 3px!important;
+  }
+  .ue-side-nav::-webkit-scrollbar{display:none!important}
+  .ue-side-nav button{
+    flex:0 0 46px!important;width:46px!important;height:46px!important;
+    border-radius:11px!important;
+  }
+  .ue-side-nav button::after,.ue-side-logout::after{display:none!important}
+  .ue-side-logout{
+    flex:0 0 46px!important;width:46px!important;height:46px!important;
+    margin:0 0 0 5px!important;border-radius:11px!important;
+  }
+  .main{
+    margin:0!important;width:100%!important;max-width:none!important;
+    padding:16px 12px 92px!important;
+  }
+  .top{
+    flex-direction:column!important;align-items:stretch!important;
+    gap:8px!important;margin-bottom:16px!important;
+  }
+  .top h1{font-size:23px!important;line-height:1.15!important}
+  .top p{font-size:12px!important;line-height:1.45!important}
+  .cards{grid-template-columns:1fr 1fr!important;gap:9px!important}
+  .card{padding:14px!important;border-radius:13px!important;min-width:0!important}
+  .card small{font-size:10px!important;line-height:1.3!important}
+  .number{font-size:24px!important}
+  .section{padding:14px!important;margin-top:12px!important;border-radius:13px!important}
+  .section-head{
+    align-items:flex-start!important;flex-direction:column!important;
+    gap:9px!important;margin-bottom:12px!important
+  }
+  .section-head>*{max-width:100%!important}
+  .section h2{font-size:16px!important;line-height:1.25!important}
+  .toolbar{display:grid!important;grid-template-columns:1fr!important;gap:8px!important}
+  .toolbar input,.toolbar select,.form input,.form select{
+    width:100%!important;min-width:0!important;min-height:44px!important;
+    font-size:16px!important
+  }
+  .table-wrap{
+    width:100%!important;max-width:100%!important;
+    overflow-x:auto!important;-webkit-overflow-scrolling:touch!important;
+    border:1px solid var(--line);border-radius:10px
+  }
+  .table-wrap table{min-width:760px!important}
+  th,td{padding:10px 9px!important;white-space:nowrap!important}
+  .quick{grid-template-columns:1fr!important;gap:8px!important}
+  .quick button{padding:14px!important;min-height:58px!important}
+  .form{grid-template-columns:1fr!important;gap:10px!important}
+  .form .full{grid-column:auto!important}
+  .form-actions{
+    display:grid!important;grid-template-columns:1fr!important;
+    width:100%!important
+  }
+  .form-actions button{width:100%!important;min-height:44px!important}
+  .primary,.secondary{min-height:44px!important}
+  .modal{padding:10px!important;align-items:flex-end!important}
+  .modal-card{
+    width:100%!important;max-height:calc(100vh - 20px)!important;
+    overflow:auto!important;border-radius:16px 16px 0 0!important;
+    padding:16px!important
+  }
+  .modal-head{position:sticky!important;top:0!important;background:#fff!important;z-index:2!important}
+  .user-create{padding:13px!important;border-radius:14px!important}
+  .user-create .intro{align-items:flex-start!important;padding:12px!important;margin-bottom:14px!important}
+  .user-create .intro-icon{width:38px!important;height:38px!important}
+  .user-create .security{font-size:10px!important}
+  .ue-client-actions{display:flex!important;max-width:100%!important}
+  .ue-client-actions button{min-height:40px!important}
+  .ue-user-actions{flex-wrap:wrap!important}
+  .ue-upload-panel{padding:22px 12px!important}
+  .ue-upload-panel h2{font-size:22px!important}
+  .ue-profile-section{
+    max-width:100%!important;overflow:hidden!important
+  }
+  .ue-profile-section>div[style*="overflow:auto"],
+  .ue-profile-section>table,
+  .ue-profile-table{
+    max-width:100%!important
+  }
+  .ue-profile-table{
+    display:block!important;overflow-x:auto!important;
+    -webkit-overflow-scrolling:touch!important
+  }
+  .ue-profile-table table{min-width:760px!important}
+}
+@media(max-width:390px){
+  .main{padding-left:9px!important;padding-right:9px!important}
+  .cards{grid-template-columns:1fr!important}
+  .ue-side-nav{gap:3px!important}
+  .ue-side-nav button,.ue-side-logout{flex-basis:43px!important;width:43px!important;height:43px!important}
+  .number{font-size:23px!important}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*:before,*:after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}
 </style></head>
 <body class="auth-pending">
 <div class="admin">
