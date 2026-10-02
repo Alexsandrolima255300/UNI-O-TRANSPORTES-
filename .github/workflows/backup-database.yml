@@ -32,11 +32,24 @@ jobs:
             exit 1
           }
 
+          # Normaliza espaços e aspas que podem vir junto ao copiar a Connection String.
+          SUPABASE_DB_URL="$(printf '%s' "$SUPABASE_DB_URL" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')"
+          SUPABASE_DB_URL="$(printf '%s' "$SUPABASE_DB_URL" | sed -E "s/^['\"](.*)['\"]$/\\1/")"
+          export SUPABASE_DB_URL
+
+          # Também aceita uma linha copiada como: psql 'postgresql://...'
+          if printf '%s' "$SUPABASE_DB_URL" | grep -qE '^psql[[:space:]]+'; then
+            SUPABASE_DB_URL="$(printf '%s' "$SUPABASE_DB_URL" | sed -E "s/^psql[[:space:]]+['\"]?//;s/['\"]$//")"
+            export SUPABASE_DB_URL
+          fi
+
           case "$SUPABASE_DB_URL" in
             postgres://*|postgresql://*) ;;
             *)
-              echo "ERRO: SUPABASE_DB_URL precisa começar com postgres:// ou postgresql://."
-              echo "Use a Connection String PostgreSQL da Supabase, sem colocar aspas no início ou no fim."
+              echo "ERRO: o Secret SUPABASE_DB_URL não contém uma Connection String PostgreSQL válida."
+              echo "A string precisa começar com postgres:// ou postgresql://."
+              echo "Ela pode ser copiada diretamente em Supabase > Connect/Conectar > Connection string > URI."
+              echo "Não use apenas o host, apenas a senha, nem o comando psql."
               exit 1
               ;;
           esac
