@@ -4,14 +4,14 @@
   const URL='https://rejyergahvzabyerhjhy.supabase.co';
   const KEY='sb_publishable_A5oVTI7f-c-M1260_Mq1oA_Y2s0J6E8';
   const client=window.supabase.createClient(URL,KEY);
-  document.documentElement.style.visibility='hidden';
+  document.documentElement.style.visibility='hidden';document.documentElement.classList.add('ue-quote-locked');
   async function protect(){
     const {data:{user}}=await client.auth.getUser();
     if(!user){document.documentElement.style.visibility='visible';return;}
     const {data:profile}=await client.from('profiles').select('role,active').eq('id',user.id).single();
     if(profile?.role==='admin'){location.replace('admin.html');return;}
-    if(!profile || profile.role!=='user' || profile.active===false){await client.auth.signOut();}
-    document.documentElement.style.visibility='visible';
+    if(!profile || profile.role!=='user' || profile.active!==true){await client.auth.signOut();return;}
+    document.documentElement.classList.remove('ue-quote-locked');document.documentElement.style.visibility='visible';
   }
   protect().catch(()=>{location.replace('index.html')});
 })();
@@ -99,7 +99,7 @@ header .brand{display:none!important}
 @media(max-width:700px){.ue-footer{padding:25px 15px 16px!important}.ue-footer-inner{flex-direction:column;gap:16px}.ue-footer-info{text-align:left}.ue-footer-copy{margin-top:18px}}
 </style><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script>
 const SUPABASE_URL='https://rejyergahvzabyerhjhy.supabase.co',SUPABASE_PUBLISHABLE_KEY='sb_publishable_A5oVTI7f-c-M1260_Mq1oA_Y2s0J6E8';const supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
-(async()=>{const {data:{user}}=await supabaseClient.auth.getUser();if(user){const {data:profile}=await supabaseClient.from('profiles').select('role,full_name,username').eq('id',user.id).single();if(profile?.role==='admin'){location.replace('admin.html');return}if(profile?.role==='user'){window.UE_CURRENT_USER={...user,profile};document.dispatchEvent(new CustomEvent('ue-auth-ready',{detail:window.UE_CURRENT_USER}))}}})();
+(async()=>{const {data:{user}}=await supabaseClient.auth.getUser();if(user){const {data:profile}=await supabaseClient.from('profiles').select('role,full_name,username,active').eq('id',user.id).single();if(profile?.role==='admin'){location.replace('admin.html');return}if(profile?.role==='user' && profile.active===true){document.documentElement.classList.remove('ue-quote-locked');window.UE_CURRENT_USER={...user,profile};document.dispatchEvent(new CustomEvent('ue-auth-ready',{detail:window.UE_CURRENT_USER}))}}})();
 </script>
 <style>
 /* ===== COTACAO REDESIGN — VISUAL ONLY ===== */
@@ -863,8 +863,8 @@ header .logo{width:495px!important;height:94px!important;max-height:94px!importa
     const {data:{user}}=await supabaseClient.auth.getUser();
     const hero=document.querySelector('.hero .ey'),sub=document.querySelector('.hero p');
     if(!user){
-      if(hero)hero.textContent='Sistema de cotação pública';
-      if(sub)sub.textContent='Faça uma cotação padrão sem criar conta. Entre em “Acessar minha conta” para usar a tabela própria da sua empresa.';
+      if(hero)hero.textContent='Acesse sua conta para cotar';
+      if(sub)sub.textContent='Entre em “Acessar minha conta” para acessar o painel de cotação e utilizar a tabela da sua empresa.';
       return;
     }
     const {data:tables}=await supabaseClient.from('freight_tables').select('id,name,status,updated_at').eq('user_id',user.id).eq('status','active').order('updated_at',{ascending:false}).limit(1);
@@ -1233,7 +1233,7 @@ window.addEventListener('ue-auth-ready',ueApplyGreeting);
 })();
 </script>
 </body></html>
-<style id="UE_UPGRADES_V2">
+<style id="UE_QUOTE_AUTH_LOCK">html.ue-quote-locked .grid{display:none!important}</style><style id="UE_UPGRADES_V2">
 /* ===== UNI-O UPGRADES — visual/UX only; calculation logic untouched ===== */
 .ue-progress{position:fixed;top:0;left:0;right:0;height:4px;background:rgba(255,255,255,.22);z-index:99999;pointer-events:none}
 .ue-progress>span{display:block;height:100%;width:0;background:#fff;box-shadow:0 0 12px rgba(255,255,255,.8);transition:width .35s ease}
