@@ -468,6 +468,61 @@ header .logo{
   .ue-nav-item{font-size:9px!important}
   .ue-account{padding:8px 10px!important}
 }
+</style><style id="UE_MOBILE_OPTIMIZATION_V2">
+/* ===== MOBILE OPTIMIZATION V2 — SOMENTE RESPONSIVIDADE ===== */
+html,body{max-width:100%;overflow-x:hidden}
+img,svg{max-width:100%}
+button,a,input,select,textarea{touch-action:manipulation}
+@media(max-width:700px){
+  body{font-size:14px}
+  header{position:relative!important}
+  header .head{width:100%!important;min-height:0!important;padding:8px 10px!important}
+  header .logo{width:min(100%,245px)!important;height:auto!important;max-height:82px!important}
+  .ue-nav{width:100%!important;max-width:100%!important;justify-content:flex-start!important;gap:16px!important;overflow-x:auto!important;overflow-y:hidden!important;padding:7px 2px!important}
+  .ue-nav-item{font-size:9px!important;min-height:36px!important;display:flex!important;align-items:center!important}
+  .ue-account{min-height:40px!important;padding:9px 12px!important}
+  main{width:100%!important;max-width:100%!important;padding:18px 10px 48px!important}
+  .hero{width:100%!important}
+  .hero h1{font-size:clamp(30px,9vw,38px)!important}
+  .hero p{font-size:14px!important}
+  .grid,.fg{width:100%!important}
+  .card{width:100%!important;padding:17px!important;border-radius:15px!important}
+  .field{min-width:0!important}
+  input,select,textarea{max-width:100%!important;font-size:16px!important}
+  .actions{width:100%!important}
+  .actions button{min-height:46px!important;width:100%!important}
+  .result{width:100%!important;box-sizing:border-box!important;overflow:hidden!important}
+  .result .rh,.result .bd{width:100%!important}
+  .line{min-height:38px!important}
+  .ue-portal{width:100%!important;max-width:100%!important;padding:8px 10px 0!important;box-sizing:border-box!important}
+  .ue-portal-bar{width:100%!important;box-sizing:border-box!important;padding:12px!important}
+  .ue-portal-title h2{font-size:17px!important;line-height:1.3!important}
+  .ue-portal-title p{font-size:11px!important;line-height:1.45!important}
+  .ue-portal-nav{width:100%!important;overflow-x:auto!important;flex-wrap:nowrap!important;padding-bottom:3px!important}
+  .ue-portal-nav button{flex:0 0 auto!important;min-height:40px!important}
+  .ue-client-tools{display:grid!important;grid-template-columns:1fr!important}
+  .ue-client-tools input,.ue-client-tools select{width:100%!important;min-width:0!important;min-height:44px!important}
+  .ue-client-table,.tableWrap{max-width:100%!important;overflow-x:auto!important;-webkit-overflow-scrolling:touch!important}
+  .ue-client-table table,.tableWrap table{min-width:720px!important}
+  .ue-quote-dialog{width:100%!important;max-height:calc(100vh - 24px)!important;padding:16px!important;border-radius:14px!important}
+  .ue-quote-dialog-head{gap:8px!important}
+  .ue-quote-dialog h3{font-size:17px!important}
+  .ue-quote-modal{padding:12px!important}
+  .ue-quote-modal-actions{display:grid!important;grid-template-columns:1fr!important}
+  .ue-quote-modal-actions button{width:100%!important;min-height:44px!important}
+  .ue-footer-inner{width:100%!important}
+}
+@media(max-width:380px){
+  header .logo{max-width:220px!important}
+  .ue-nav{gap:13px!important}
+  .ue-nav-item{font-size:8px!important}
+  main{padding-left:8px!important;padding-right:8px!important}
+  .card{padding:14px!important}
+  .ue-account{font-size:9px!important;padding:8px 10px!important}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*:before,*:after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}
 </style></head><body><header><div class="head"><img class="logo" alt="União Express Uberaba" src="https://raw.githubusercontent.com/Alexsandrolima255300/UNI-O-TRANSPORTES-/main/323dcaad-7aad-4160-b53b-adee97d0db40.png"><nav class="ue-nav" aria-label="Menu principal"><a class="ue-nav-item" href="#cotacao">COTAÇÃO</a><a class="ue-nav-item" href="#previsao" id="ueDeliveryBtn" role="button">PREVISÃO DE ENTREGA</a><a class="ue-nav-item" href="#rastreamento" id="ueTrackBtn" role="button">RASTREAR CARGA</a><a class="ue-nav-item" href="#calculo" id="ueCalcBtn" role="button">COMO CALCULAMOS</a><a class="ue-nav-item" href="#coleta" id="ueColetaBtn" role="button">COLETA</a></nav><button class="ue-account" id="ueAccountAction" type="button" aria-label="Acessar minha conta"><span id="ueAccountName">ACESSAR MINHA CONTA</span></button><div class="brand">COTAÇÃO DE FRETE<br><b>UNIÃO EXPRESS • UBERABA</b></div></div></header><main><section class="hero"><div><div class="ey">Sistema de cotação</div><h1>Calcule seu frete em poucos segundos.</h1><p>Calculadora baseada na planilha fornecida da União Express Uberaba, com destinos, prazos e regras de cobrança.</p></div><div class="heroCard"><div><b>Base cadastrada</b><div class="big">227 destinos</div><span style="color:#64758b;font-size:12px">Cálculo automático por valor da NF, peso, pedágio e taxas da tabela.</span></div></div></section><section class="grid"><div class="card"><h2>Nova cotação</h2><p class="sub">Informe o destino, o valor da NF e o peso.</p><div class="fg"><div class="field"><label>Origem</label><input value="Uberaba - MG" readonly></div><div class="field"><label>Destino</label><select id="dest"></select></div><div class="field"><label for="cep">CEP de destino</label><input id="cep" inputmode="numeric" maxlength="9" placeholder="00000-000"></div><div class="field"><label>Valor da nota fiscal (R$)</label><input id="nf" inputmode="decimal" placeholder="Ex.: 3500,00"></div><div class="field"><label>Peso da carga (kg)</label><input id="kg" inputmode="decimal" placeholder="Ex.: 80"></div>
 <div class="field"><label for="cubagemQtd">Quantidade de volumes</label><input id="cubagemQtd" inputmode="numeric" type="number" min="1" step="1" value="1" placeholder="Ex.: 2"></div>
 <div class="field"><label for="cubagemComp">Comprimento (cm)</label><input id="cubagemComp" inputmode="decimal" placeholder="Ex.: 100"></div>
