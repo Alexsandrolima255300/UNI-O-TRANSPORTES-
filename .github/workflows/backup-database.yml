@@ -14,15 +14,67 @@ jobs:
     timeout-minutes: 30
 
     steps:
-      - name: Verificar secrets
+      - name: Verificar secrets e URL do banco
         shell: bash
         env:
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
           BACKUP_ENCRYPTION_KEY: ${{ secrets.BACKUP_ENCRYPTION_KEY }}
         run: |
           set -euo pipefail
-          test -n "$SUPABASE_DB_URL" || { echo "SUPABASE_DB_URL não configurado."; exit 1; }
-          test -n "$BACKUP_ENCRYPTION_KEY" || { echo "BACKUP_ENCRYPTION_KEY não configurado."; exit 1; }
+
+          test -n "$SUPABASE_DB_URL" || {
+            echo "ERRO: o Secret SUPABASE_DB_URL está vazio ou não foi encontrado."
+            exit 1
+          }
+
+          test -n "$BACKUP_ENCRYPTION_KEY" || {
+            echo "ERRO: o Secret BACKUP_ENCRYPTION_KEY está vazio ou não foi encontrado."
+            exit 1
+          }
+
+          case "$SUPABASE_DB_URL" in
+            postgres://*|postgresql://*) ;;
+            *)
+              echo "ERRO: SUPABASE_DB_URL precisa começar com postgres:// ou postgresql://."
+              echo "Use a Connection String PostgreSQL da Supabase, sem colocar aspas no início ou no fim."
+              exit 1
+              ;;
+          esac
+
+          DB_HOST="$(printf '%s' "$SUPABASE_DB_URL" | sed -E 's#^[^:]+://([^@]+@)?([^/:?]+).*$#\2#')"
+
+          if [ -z "$DB_HOST" ] || [ "$DB_HOST" = "$SUPABASE_DB_URL" ]; then
+            echo "ERRO: não foi possível identificar o servidor PostgreSQL na SUPABASE_DB_URL."
+            echo "Verifique se a string contém usuario:senha@servidor."
+            exit 1
+          fi
+
+          echo "URL do banco reconhecida."
+          echo "Servidor PostgreSQL identificado: $DB_HOST"
+
+      - name: Testar conexão com PostgreSQL
+        shell: bash
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          set -euo pipefail
+
+          docker run --rm \
+            -e DATABASE_URL="$SUPABASE_DB_URL" \
+            postgres:17 \
+            bash -lc '
+              set -euo pipefail
+              export PGCONNECT_TIMEOUT=15
+
+              case "$DATABASE_URL" in
+                *"?"*) CONNECTION_URL="${DATABASE_URL}&sslmode=require" ;;
+                *) CONNECTION_URL="${DATABASE_URL}?sslmode=require" ;;
+              esac
+
+              echo "Testando conexão com o banco Supabase..."
+              psql --dbname="$CONNECTION_URL" --command="select 1;" >/dev/null
+              echo "Conexão com o PostgreSQL confirmada."
+            '
 
       - name: Gerar dump PostgreSQL
         shell: bash
@@ -31,11 +83,32 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p backup
+
           docker run --rm \
             -e DATABASE_URL="$SUPABASE_DB_URL" \
             postgres:17 \
-            bash -lc 'pg_dump "$DATABASE_URL" --format=custom --no-owner --no-privileges' \
-            > backup/uniao-db.dump
+            bash -lc '
+              set -euo pipefail
+              export PGCONNECT_TIMEOUT=30
+
+              case "$DATABASE_URL" in
+                *"?"*) CONNECTION_URL="${DATABASE_URL}&sslmode=require" ;;
+                *) CONNECTION_URL="${DATABASE_URL}?sslmode=require" ;;
+              esac
+
+              pg_dump \
+                --dbname="$CONNECTION_URL" \
+                --format=custom \
+                --no-owner \
+                --no-privileges
+            ' > backup/uniao-db.dump
+
+          test -s backup/uniao-db.dump || {
+            echo "ERRO: o dump foi criado vazio."
+            exit 1
+          }
+
+          echo "Dump PostgreSQL criado com sucesso."
 
       - name: Compactar e criptografar backup
         shell: bash
@@ -44,6 +117,7 @@ jobs:
         run: |
           set -euo pipefail
           DATE="$(date -u +%Y-%m-%d_%H-%M-%S)"
+
           tar -C backup -czf "backup/uniao-${DATE}.tar.gz" uniao-db.dump
           rm -f backup/uniao-db.dump
 
@@ -53,6 +127,7 @@ jobs:
             -pass env:BACKUP_ENCRYPTION_KEY
 
           rm -f "backup/uniao-${DATE}.tar.gz"
+
           sha256sum "backup/uniao-${DATE}.tar.gz.enc" > "backup/uniao-${DATE}.sha256"
 
       - name: Testar integridade do arquivo
