@@ -866,8 +866,9 @@ header .logo{width:495px!important;height:94px!important;max-height:94px!importa
     const manualLogin=sessionStorage.getItem('ue_manual_login')==='1';
     const hero=document.querySelector('.hero .ey'),sub=document.querySelector('.hero p');
     if(!user || !manualLogin){
-      if(hero)hero.textContent='Acesse sua conta para cotar';
-      if(sub)sub.textContent='Entre em “Acessar minha conta” para acessar o painel de cotação e utilizar a tabela da sua empresa.';
+      if(hero)hero.textContent='Sistema de cotação padrão';
+      if(sub)sub.textContent='Faça sua cotação utilizando a tabela pública do sistema. Entre na sua conta para usar uma tabela própria, quando disponível.';
+      window.UE_CUSTOM_TABLE=null;
       return;
     }
     const {data:tables}=await supabaseClient.from('freight_tables').select('id,name,status,updated_at').eq('user_id',user.id).eq('status','active').order('updated_at',{ascending:false}).limit(1);
