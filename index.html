@@ -81,7 +81,7 @@ async function routeForUser(user){
   if(profile.role==='admin'){location.replace('admin.html');return}
   if(profile.role==='user'){
     if(profile.active!==true){await supabaseClient.auth.signOut();sessionStorage.removeItem('ue_manual_login');document.getElementById('loginScreen').style.display='flex';document.getElementById('loadingScreen').style.display='none';document.getElementById('app').style.display='block';document.getElementById('loginError').textContent='Este usuário está desativado. Entre em contato com o administrador.';return}
-    loginScreen.style.display='none';loadingScreen.style.display='none';app.style.display='block';return
+    loginScreen.style.display='none';loadingScreen.style.display='none';app.style.display='block';await window.ueIntroReady?.();return
   }
   await supabaseClient.auth.signOut();sessionStorage.removeItem('ue_manual_login');
 }
