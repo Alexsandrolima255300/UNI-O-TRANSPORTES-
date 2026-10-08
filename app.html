@@ -680,7 +680,7 @@ const nfInput=document.getElementById('nf');if(nfInput){nfInput.addEventListener
     }
     statusEl.textContent='Consultando CNPJ na BrasilAPI...';
     try{
-      const r=await fetch('https://brasilapi.com.br/api/cnpj/v1/'+c);
+      const r=await fetch('/api/cnpj/'+c,{headers:{Accept:'application/json'}});
       if(!r.ok)throw new Error('CNPJ não encontrado');
       const data=await r.json();
       const company=data.razao_social||data.nome_fantasia||'Empresa localizada';
