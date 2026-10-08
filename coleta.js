@@ -3,7 +3,7 @@
   'use strict';
 
   const WHATSAPP = '553433148566';
-  const API_BASE = 'https://brasilapi.com.br/api/cnpj/v1/';
+  const API_BASE = '/api/cnpj/';
   const $ = (id) => document.getElementById(id);
   let lookupSequence = 0;
 
