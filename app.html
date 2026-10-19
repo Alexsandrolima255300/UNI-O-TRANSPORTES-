@@ -678,11 +678,18 @@ const nfInput=document.getElementById('nf');if(nfInput){nfInput.addEventListener
       statusEl.textContent='Digite os 14 números do CNPJ.';
       return;
     }
-    statusEl.textContent='Consultando CNPJ na BrasilAPI...';
+    // Identificador evita que uma consulta antiga sobrescreva um CNPJ digitado depois.
+    const requestCnpj=c;
+    input.dataset.lookupCnpj=requestCnpj;
+    statusEl.textContent='Consultando cadastro nacional de empresas...';
+    const controller=new AbortController();
+    const timeout=setTimeout(()=>controller.abort(),10000);
     try{
-      const r=await fetch('/api/cnpj/'+c,{headers:{Accept:'application/json'}});
-      if(!r.ok)throw new Error('CNPJ não encontrado');
-      const data=await r.json();
+      const r=await fetch('/api/cnpj/'+c,{headers:{Accept:'application/json'},signal:controller.signal});
+      let data={};
+      try{data=await r.json();}catch(_){}
+      if(input.value.replace(/\D/g,'')!==requestCnpj || input.dataset.lookupCnpj!==requestCnpj)return;
+      if(!r.ok)throw new Error(data.error||'Não foi possível consultar este CNPJ.');
       const company=data.razao_social||data.nome_fantasia||'Empresa localizada';
       input.dataset.companyName=company;
       const address=[data.logradouro,data.numero,data.bairro,data.municipio&&data.uf?(data.municipio+' - '+data.uf):'',data.cep].filter(Boolean).join(', ');
@@ -710,7 +717,13 @@ const nfInput=document.getElementById('nf');if(nfInput){nfInput.addEventListener
         statusEl.innerHTML='✓ <b>'+company+'</b><br>'+address;
       }
     }catch(e){
-      statusEl.textContent='Não foi possível localizar este CNPJ. Verifique o número e tente novamente.';
+      if(input.value.replace(/\D/g,'')!==requestCnpj || input.dataset.lookupCnpj!==requestCnpj)return;
+      delete input.dataset.companyName;
+      statusEl.textContent=e.name==='AbortError'
+        ?'A consulta demorou demais. Tente novamente em alguns segundos.'
+        :(e.message||'Não foi possível localizar este CNPJ. Tente novamente.');
+    }finally{
+      clearTimeout(timeout);
     }
   }
 
